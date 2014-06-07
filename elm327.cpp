@@ -1,20 +1,22 @@
 /*
-Copyright 2013 Jared Wiltshire
+SpeckMobil - Experimental TP2.0-KWP2000 Software
 
-This file is part of VAG Blocks.
+Copyright (C) 2014 Matthias Amberg
 
-VAG Blocks is free software: you can redistribute it and/or modify
+Derived from VAG Blocks, Copyright 2013 Jared Wiltshire
+
+SpeckMobil is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+any later version.
 
-VAG Blocks is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with VAG Blocks.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "elm327.h"
@@ -29,11 +31,11 @@ elm327::elm327(QObject *parent) :
 {
     // default settings
     settings.name = "COM1";
-    settings.dataBits = SerialPort::Data8;
-    settings.flowControl = SerialPort::NoFlowControl;
-    settings.parity = SerialPort::NoParity;
-    settings.rate = SerialPort::Rate115200;
-    settings.stopBits = SerialPort::OneStop;
+    settings.dataBits = QSerialPort::Data8;
+    settings.flowControl = QSerialPort::NoFlowControl;
+    settings.parity = QSerialPort::NoParity;
+    settings.rate = QSerialPort::Baud38400;
+    settings.stopBits = QSerialPort::OneStop;
 }
 
 elm327::~elm327()
@@ -44,20 +46,25 @@ elm327::~elm327()
 void elm327::openPort()
 {
     if (!port) {
-        port = new SerialPort(this);
+        port = new QSerialPort(this);
         port->setReadBufferSize(0x100000);
         connect(port, SIGNAL(readyRead()), this, SLOT(constructLine()));
     }
 
-    closePort();
+    {
+        if (port) {
+            port->close();
+        }
+        portOpen = false;
+    }
 
-    port->setPort(settings.name);
+    port->setPortName(settings.name);
 
     if (port && port->open(QIODevice::ReadWrite)) {
         emit log("Port opened.");
 
         bool ok;
-        ok = port->setRate(settings.rate);
+        ok = port->setBaudRate(settings.rate);
         if (!ok) {
             emit log("Serial port rate could not be set.", serialConfigLog);
         }
@@ -85,6 +92,7 @@ void elm327::openPort()
     }
     portOpen = false;
     emit portOpened(false);
+    emit portClosed();
     emit log("Port could not be opened.");
     return;
 }
@@ -106,12 +114,10 @@ void elm327::write(const QString &txt)
     //if (txt2.left(1) == "B")
     //    txt2.append(" 0");
 
-#ifndef STATIC_BUILD
-    emit log("TX: " + txt, rxTxLog, false);
-#endif
+    emit log("TX: " + txt, rxTxLog);
 
     if (port && port->isOpen()) {
-        port->write((txt + '\r').toAscii());
+        port->write((txt + '\r').toLatin1());
     }
 }
 
@@ -139,50 +145,51 @@ QList<canFrame*>* elm327::getResponseCAN(int &status)
     QList<canFrame*>* result = new QList<canFrame*>;
     int triesForPrompt = 20;
 
-    if (response.left(2) == "AT") {
+    if (response == "AT") {
         status |= AT_RESPONSE;
         response = getLine(); // echos must be on, get another line
     }
 
     if (response.length() == 0) {
         status |= TIMEOUT_ERROR;
+        response = getLine();
     }
-    else if (response == "OK") {
+    else if (response.startsWith("OK")) {
         status |= OK_RESPONSE;
         response = getLine();
     }
-    else if (response == "STOPPED") {
+    else if (response.startsWith("STOPPED")) {
         status |= STOPPED_RESPONSE;
         response = getLine();
     }
-    else if (response == "?") {
+    else if (response.startsWith("?")) {
         status |= UNKNOWN_RESPONSE;
         response = getLine();
     }
-    else if (response == "NO DATA") {
+    else if (response.startsWith("NO DATA")) {
         status |= NO_DATA_RESPONSE;
         response = getLine();
     }
-    else if (response == "CAN ERROR") {
+    else if (response.startsWith("CAN ERROR")) {
         status |= CAN_ERROR;
         response = getLine();
     }
 
     if (status != 0) {
-        triesForPrompt = 1;
+        triesForPrompt = 2;
     }
 
     // receive data until prompt appears
-    for (int i = 0; response != ">"; i++) {
+    for (int i = 0; !response.endsWith(">"); i++) {
         if (i >= triesForPrompt) {
             status |= NO_PROMPT_ERROR;
             break;
         }
 
-        if (response == "STOPPED") {
+        if (response.startsWith("STOPPED")) {
             status |= STOPPED_RESPONSE;
         }
-        else {
+        else if (response.length() != 0) {   //skip empty lines
             canFrame* newCF = hexToCF(response);
             if (!newCF) {
                 status |= PROCESSING_ERROR;
@@ -193,7 +200,6 @@ QList<canFrame*>* elm327::getResponseCAN(int &status)
         }
         response = getLine();
     }
-
     return result;
 }
 
@@ -203,27 +209,30 @@ bool elm327::getResponseStatus(int &status)
     QString response = getLine();
     bool ret = false;
 
-    if (response.left(2) == "AT") {
+    if (response.startsWith("AT")) {
         status |= AT_RESPONSE;
         response = getLine(); // echos must be on, get another line
     }
 
-    if (response == "OK") {
+    if (response.startsWith("OK")) {
         status |= OK_RESPONSE;
         ret = true;
     }
-    else if (response == "?") {
+    else if (response.startsWith("?")) {
         status |= UNKNOWN_RESPONSE;
     }
 
     // receive data until prompt appears
-    for (int i = 0; getLine() != ">"; i++) {
-        if (i >= 2) {
+    //FEHLER
+    if (response.endsWith(">")) {
+        return ret;
+    }
+    for (int i = 0; !getLine().endsWith(">"); i++) {
+        if (i >=3) {
             status |= NO_PROMPT_ERROR;
             break;
         }
     }
-
     return ret;
 }
 
@@ -261,10 +270,12 @@ QString elm327::getResponseStr(int &status)
 {
     status = 0;
     QString response = getLine();
-
+    if (response.endsWith(">")) {
+        return response;
+    }
     // receive data until prompt appears
-    for (int i = 0; getLine() != ">"; i++) {
-        if (i >= 2) {
+    for (int i = 0; !getLine().endsWith(">"); i++) {
+        if (i >= 3) {
             status |= NO_PROMPT_ERROR;
             break;
         }
@@ -339,26 +350,23 @@ void elm327::constructLine()
 
     if (data.endsWith('\r') || data.endsWith('>')) {
         QString line(data);
+        data.clear();
 
-        if (line.endsWith('\n')) {
-            line.chop(1);
-        }
         if (line.endsWith('\r')) {
             line.chop(1);
         }
-
-        data.clear();
 
         if (line.isEmpty()) {
             return;
         }
 
-#ifndef STATIC_BUILD
         emit log("RX: " + line, rxTxLog, false);
-#endif
+        emit receivedData();
 
         protectLines->lock();
-        bufferedLines << line;
+        QStringList templines = line.split("\r");
+
+        bufferedLines << templines;
         linesAvailable.wakeAll();
         protectLines->unlock();
     }

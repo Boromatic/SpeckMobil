@@ -1,38 +1,47 @@
 /*
-Copyright 2013 Jared Wiltshire
+SpeckMobil - Experimental TP2.0-KWP2000 Software
 
-This file is part of VAG Blocks.
+Copyright (C) 2014 Matthias Amberg
 
-VAG Blocks is free software: you can redistribute it and/or modify
+Derived from VAG Blocks, Copyright 2013 Jared Wiltshire
+
+SpeckMobil is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+any later version.
 
-VAG Blocks is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with VAG Blocks.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "tp20.h"
 #include "qmath.h"
 #include "util.h"
-#include <QCoreApplication>
+#include "qeventloop.h"
+
 
 tp20::tp20(elm327* elm, QObject *parent) :
     QObject(parent),
     elm(elm),
     lastResponse(0),
+    savedResponse(0),
     channelDest(-1),
     txID(0), rxID(0),
     txSeq(0), rxSeq(0),
     elmInitilised(false),
-    recvTimeout(-1)
+    recvTimeout(-1),
+    keepAliveError(0),
+    passiveRxReadyStatus(true),
+    minimumSendTime(0),
+    timerT_Wait(100),
+    responsePending(0)
 {
-    keepAliveTimer.setInterval(500);
+    keepAliveTimer.setInterval(T_CTa);
     connect(&keepAliveTimer, SIGNAL(timeout()), this, SLOT(sendKeepAlive()));
     keepAliveTimer.start();
 
@@ -52,7 +61,14 @@ bool tp20::getElmInitialised()
 
 void tp20::sendData(const QByteArray &data, int requestedTimeout)
 {
-    if (channelDest < 0 || data.length() == 0 || data.length() > 65535) {
+    //channel has to bee set
+    if (channelDest < 0) {
+        return;
+    }
+
+    //don't send no or too long data
+    quint16 len = data.length();
+    if (len == 0 || data.length() > 65535) {
         return;
     }
 
@@ -65,14 +81,12 @@ void tp20::sendData(const QByteArray &data, int requestedTimeout)
         }
     }
 
-    //QCoreApplication::processEvents();
-    //QMutexLocker locker(&sendLock);
-
-    quint16 len = data.length();
+    //lenBA: 2 bytes containing lenghth of data
     QByteArray lenBA;
     lenBA.append(len >> 8);
     lenBA.append(len & 0x0F);
 
+    //data to send
     QByteArray sendData(data);
     sendData.prepend(lenBA);
 
@@ -82,50 +96,50 @@ void tp20::sendData(const QByteArray &data, int requestedTimeout)
         QByteArray packet;
         int bytesLeft = sendData.length() - i*7;
 
-        if (bytesLeft <= 7) { // expecting ACK, last packet 0x1X
+        if (bytesLeft <= 7) { // expecting ACK, last packet -> 0x1X
             packet.append(0x10 | (txSeq++ & 0x0F));
             packet.append(sendData.mid(i*7, bytesLeft));
             writeToElmBA(packet);
+            if (!getResponseCAN()) {
+                emit log("Error: Did not get ACK from TP2.0 device", responseErrorLog);
+                return;
+            }
+            if (!checkACK() || lastResponse->length() < 2) {
+                emit log("Error: Invalid ACK or no data from TP2.0 device", responseErrorLog);
+                return;
+            }
+            lastResponse->removeFirst(); // after ACK check, remove ACK
             recvData();
         }
-        else if (i % bs == bs-1) { // expecting ACK, more packets to come 0x0X
+        else if (i % bs == bs-1) { // expecting ACK, more packets to come -> 0x0X
             packet.append(0x00 | (txSeq++ & 0x0F));
             packet.append(sendData.mid(i*7, 7));
             writeToElmBA(packet);
-            // Read in ACK
+            //Read ACK
             if (!getResponseCAN()) {
-                emit log("Error: Did not get ACK from TP2.0 device", debugMsgLog);
+                emit log("Error: Did not get ACK from TP2.0 device", responseErrorLog);
                 return;
             }
             if (lastResponse->length() > 1 || !checkACK()) {
-                emit log("Error: Invalid ACK from TP2.0 device", debugMsgLog);
+                emit log("Error: Invalid ACK from TP2.0 device", responseErrorLog);
                 return;
             }
         }
-        else { // more packets to come 0x2X
+        else { // more packets to come -> 0x2X
             packet.append(0x20 | (txSeq++ & 0x0F));
             packet.append(sendData.mid(i*7, 7));
             writeToElmBA(packet);
             // Read in NO DATA
             if (!getResponseStatus(NO_DATA_RESPONSE)) {
-                emit log("Error: Got premature response from TP2.0 device", debugMsgLog);
+                emit log("Error: Got premature response from TP2.0 device", responseErrorLog);
                 return;
             }
         }
     }
-    return; // should never get to here
 }
 
-void tp20::recvData() {
-    if (!getResponseCAN()) {
-        return;
-    }
-    if (!checkACK() || lastResponse->length() < 2) {
-        return;
-    }
-
-    lastResponse->removeFirst(); // remove ACK
-
+void tp20::recvData()
+{
     QByteArray* ret = 0;
     bool firstPacket = true;
     bool keepGoing = true;
@@ -144,7 +158,7 @@ void tp20::recvData() {
                 dtF = getAsDTFirst(0);
             }
             else {
-                emit log("Error: Incorrectly trying to interpret packet as first packet", debugMsgLog);
+                emit log("Error: Incorrectly trying to interpret packet as first packet", responseErrorLog);
                 return;
             }
             length = dtF.len;
@@ -156,19 +170,22 @@ void tp20::recvData() {
         }
 
         if (!ret) {
-            emit log("Error: TP2.0 return byte array does not exist", debugMsgLog);
+            emit log("Error: TP2.0 return byte array does not exist", responseErrorLog);
             return;
         }
 
         if (bytesReceived == length) {
-            emit log("Warning: Bytes received = packet length, should have returned already", debugMsgLog);
+            emit log("Warning: Bytes received = packet length, should have returned already", responseErrorLog);
         }
 
         if (bytesReceived > length) {
-            emit log("Warning: Received more bytes than the message length", debugMsgLog);
+            emit log("Error: Received more bytes than the message length", responseErrorLog);
+            delete ret;
+            return;
         }
 
         if (!checkSeq()) {
+            emit log("Error: Sequence error", responseErrorLog);
             delete ret;
             return;
         }
@@ -177,13 +194,13 @@ void tp20::recvData() {
         for (int i = 0; i < lenTmp; i++) {
             dataTrans dt = getAsDT(i);
             if (dt.opcode > 0x3) {
-                emit log("Error: Invalid TP2.0 op-code", debugMsgLog);
+                emit log("Error: Invalid TP2.0 op-code", responseErrorLog);
                 delete ret;
                 return;
             }
             if (dt.opcode & 0x01) { // last packet
                 if (lastResponse->length()-1 > i) {
-                    emit log("Error: This is the last TP2.0 packet but there is data following", debugMsgLog);
+                    emit log("Error: This is the last TP2.0 packet but there is data following", responseErrorLog);
                     delete ret;
                     return;
                 }
@@ -196,21 +213,17 @@ void tp20::recvData() {
 
             if (!keepGoing) {
                 if (bytesReceived < length) {
-                    emit log("Warning: Received less bytes than the TP2.0 message length", debugMsgLog);
+                    emit log("Warning: Received less bytes than the TP2.0 message length", responseErrorLog);
+                    delete ret;
+                    return;
                 }
                 emit response(ret);
-                //ret = 0;
             }
 
             if (!(dt.opcode & 0x02)) { // send ACK
-                if (lastResponse->length()-1 > i) {
-                    emit log("Error: Was asked to send TP2.0 ACK but this is not the last packet", debugMsgLog);
-                    if (ret) {
-                        //delete ret;
-                    }
-                    return;
-                }
+                emit log("send ACK", debugMsgLog);
                 if(!sendACK(keepGoing)) {
+                    emit log("!sendACK=0", debugMsgLog);
                     if (lastResponse->length() > 0) {
                         // Didn't expect to get more data because we already received the last packet
                         // There is an additional KWP message following
@@ -220,35 +233,86 @@ void tp20::recvData() {
                     }
                     else {
                         emit log("Error: Error sending ACK", debugMsgLog);
-                        if (ret) {
-                            //delete ret;
-                        }
+                        delete ret;
                         return;
                     }
                 }
+                emit log("sended ACK", debugMsgLog);
             }
         }
     }
 }
 
+void tp20::passiveRxReady()
+{
+    passiveRxReadyStatus = true;
+    emit passiveRxReadySignal();
+}
+
 void tp20::writeToElmStr(const QString &str)
 {
-    QMetaObject::invokeMethod(elm, "write", Qt::QueuedConnection, Q_ARG(QString, str));
+    if (!passiveRxReadyStatus)
+    {
+        QEventLoop loop;
+        connect(this, SIGNAL(passiveRxReadySignal()), &loop, SLOT(quit()));
+                loop.exec();
+    }
+    QMetaObject::invokeMethod(&keepAliveTimer, "start", Qt::QueuedConnection);  //restart timer, write data is equivalent to keep alive
+    QMetaObject::invokeMethod(elm, "write", Qt::BlockingQueuedConnection, Q_ARG(QString, str));
+    passiveRxReadyStatus = false;
+    QTimer::singleShot(minimumSendTime, this, SLOT(passiveRxReady()));
 }
 
 void tp20::writeToElmBA(const QByteArray &str)
 {
-    QMetaObject::invokeMethod(elm, "write", Qt::QueuedConnection, Q_ARG(QByteArray, str));
+    if (!passiveRxReadyStatus)
+    {
+        QEventLoop loop;
+        connect(this, SIGNAL(passiveRxReadySignal()), &loop, SLOT(quit()));
+                loop.exec();
+    }
+    QMetaObject::invokeMethod(&keepAliveTimer, "start", Qt::QueuedConnection);  //restart timer, write data is equivalent to keep alive
+    QMetaObject::invokeMethod(elm, "write", Qt::BlockingQueuedConnection, Q_ARG(QByteArray, str));
+    passiveRxReadyStatus = false;
+    QTimer::singleShot(minimumSendTime, this, SLOT(passiveRxReady()));
 }
 
 void tp20::setSendCanID(int id)
 {
-    QMetaObject::invokeMethod(elm, "setSendCanID", Qt::QueuedConnection, Q_ARG(int, id));
+    QMetaObject::invokeMethod(elm, "setSendCanID", Qt::BlockingQueuedConnection, Q_ARG(int, id));
 }
 
 void tp20::setRecvCanID(int id)
 {
-    QMetaObject::invokeMethod(elm, "setRecvCanID", Qt::QueuedConnection, Q_ARG(int, id));
+    QMetaObject::invokeMethod(elm, "setRecvCanID", Qt::BlockingQueuedConnection, Q_ARG(int, id));
+}
+
+void tp20::stopKeepAliveTimer()
+{
+    QMetaObject::invokeMethod(&keepAliveTimer, "stop", Qt::QueuedConnection);
+}
+
+void tp20::startKeepAliveTimer()
+{
+    sendKeepAlive();
+    QMetaObject::invokeMethod(&keepAliveTimer, "start", Qt::QueuedConnection);
+}
+
+void tp20::waitForData()
+{
+    for (int i = 0; i <= 50; i++)
+    {
+    bool receivedData = getResponseCAN();
+    if (receivedData)
+    {
+        emit log("Data found", debugMsgLog);
+        break;
+    }
+    QEventLoop loop;
+    QTimer::singleShot(100, &loop, SLOT(quit()));
+    loop.exec();
+    }
+    recvData();
 }
 
 void tp20::setChannelClosed()
@@ -262,14 +326,10 @@ void tp20::elmInitialisationFailed()
 {
     elmInitilised = false;
     emit elmInitDone(false);
+    emit log("ELM init failed.");
     if (elm->getPortOpen())
-        QMetaObject::invokeMethod(elm, "closePort", Qt::QueuedConnection);
-    return;
-}
-
-void tp20::setSlowRecvTimeout(int slow)
-{
-    slowRecvTimeout = slow;
+        QMetaObject::invokeMethod(elm, "closePort", Qt::BlockingQueuedConnection);
+        return;
 }
 
 void tp20::setKeepAliveInterval(int time)
@@ -300,7 +360,8 @@ bool tp20::applyRecvTimeout(int msecs)
     return true;
 }
 
-bool tp20::sendACK(bool dataFollowing) {
+bool tp20::sendACK(bool dataFollowing)
+{
     QByteArray ack;
     ack.append(0xB0 | (rxSeq & 0x0F));
     writeToElmBA(ack);
@@ -313,7 +374,28 @@ bool tp20::sendACK(bool dataFollowing) {
 bool tp20::checkACK() {
     dataTrans dt = getAsDT(0);
     if (dt.opcode != 0xB || dt.seq != (txSeq & 0x0F)) {
-        return false;
+        //todo txseq -> send again
+        //todo notreadycounter
+        //            notReadyCounter++;
+        //            if (notReadyCounter >= MNTB)
+        //            {
+        //                notReadyCounter = 0;
+        //                emit log("Error: Receiver not ready error.");
+        //                setChannelClosed();
+        //                return false;
+        //            }
+        if (dt.opcode == 0x9)
+        {
+            emit log("Receiver not ready TPDU = 9x", debugMsgLog);  // insert delay T_wait
+            stopKeepAliveTimer();
+            QEventLoop loop;
+            QTimer::singleShot(T_wait, &loop, SLOT(quit()));
+            loop.exec();
+            txSeq --; //debug
+        }
+        //return false;
+        return true;
+                // todo correct txSeq
     }
     return true;
 }
@@ -321,10 +403,10 @@ bool tp20::checkACK() {
 void tp20::initialiseElm(bool open)
 {
     if (open) {
-        // turn off echo
-        writeToElmStr("AT E0"); // make sure there is no existing data coming from COM port
+        writeToElmStr("AT I"); // make sure there is no existing data coming from COM port
+        writeToElmStr("AT Z"); // reset ELM
         getResponseStr();
-        writeToElmStr("AT E0");
+        writeToElmStr("AT E0"); // turn off echo
         if (!getResponseStatus(OK_RESPONSE)) {
             elmInitialisationFailed();
             return;
@@ -341,7 +423,7 @@ void tp20::initialiseElm(bool open)
 
         writeToElmStr("ST I");
         QString stFirmware = getResponseStr();
-        if (stFirmware != "?") {
+        if (!stFirmware.startsWith("?")) {
             writeToElmStr("ST DI");
             QString stDevStr = getResponseStr();
             writeToElmStr("ST MFR");
@@ -361,7 +443,6 @@ void tp20::initialiseElm(bool open)
                 return;
             }
         }
-
         // set user mode B to  500kbps, 11 bit ID
         writeToElmStr("AT PB C0 01");
         if (!getResponseStatus(OK_RESPONSE)) {
@@ -376,14 +457,14 @@ void tp20::initialiseElm(bool open)
             return;
         }
 
-        // turn on CAN ID display (headers??)
+        // display CAN ID
         writeToElmStr("AT H1");
         if (!getResponseStatus(OK_RESPONSE)) {
             elmInitialisationFailed();
             return;
         }
 
-        // turn on DLC display
+        // display DLC
         writeToElmStr("AT D1");
         if (!getResponseStatus(OK_RESPONSE)) {
             elmInitialisationFailed();
@@ -499,6 +580,7 @@ bool tp20::checkSeq()
 
 void tp20::openChannel(int dest, int timeout)
 {
+    keepAliveError = 0;
     if (!elmInitilised) {
         return;
     }
@@ -528,8 +610,10 @@ void tp20::openChannel(int dest, int timeout)
     txSeq = 0;
 
     writeToElmStr(toHex(dest, 2) + " C0 00 10 00 03 01");
-    if (!getResponseCAN() || !checkResponse(7)) {
-        setChannelClosed();
+    if (!getResponseCAN())
+       //     || !checkResponse(7)) {
+        {
+            setChannelClosed();
         return;
     }
     chanSetup setup = getAsCS(0);
@@ -552,7 +636,7 @@ void tp20::openChannel(int dest, int timeout)
         return;
     }
 
-    writeToElmStr("A0 0F 8A FF 4A FF");
+    writeToElmStr("A0 0F 8A FF 00 FF");
     if (!getResponseCAN() || !checkResponse(6)) {
         setChannelClosed();
         return;
@@ -566,6 +650,17 @@ void tp20::openChannel(int dest, int timeout)
     t1 = param.T1;
     t3 = param.T3;
 
+    quint8 timepot = (t3 & 0b11000000) >> 6; // 00 0.1ms, 01 1ms, 10 10ms, 11 100ms
+    quint8 timefactor = t3 & 0b00111111;
+    quint8 timebase = 1;
+
+    for (int i = 1; i <= timepot; i++)
+    {
+        timebase *=10;
+    }
+    quint16 mintime = timebase * timefactor; // in 0.1 ms
+    minimumSendTime = (mintime / 10) + 1;
+
     channelDest = dest;
     emit channelOpened(true);
 }
@@ -573,7 +668,7 @@ void tp20::openChannel(int dest, int timeout)
 void tp20::closeChannel()
 {
     writeToElmStr("A8");
-    getResponseCAN();
+    getResponseCAN(true, true);
     setChannelClosed();
 }
 
@@ -587,19 +682,41 @@ void tp20::sendKeepAlive()
     //QMutexLocker locker(&sendLock);
 
     writeToElmStr("A3");
-    if (!getResponseCAN() || !checkResponse(6)) {
-        setChannelClosed();
-        return;
-    }
-    chanParam param = getAsCP(0);
-    if (param.opcode != 0xA1 || param.bs > 0xF) {
-        setChannelClosed();
-        return;
-    }
 
-    bs = param.bs;
-    t1 = param.T1;
-    t3 = param.T3;
+    if (!getResponseCAN() || lastResponse->at(0)->data.length() < 6)
+    {
+        emit log("Warning: No Response to keep alive");
+        keepAliveError += 1;
+        if (keepAliveError > MNCT)
+        {
+            keepAliveError = 0;
+            emit log("Error: Too many keepAliveErrors");
+            setChannelClosed();
+            return;
+        }
+    }
+    else
+    {
+        keepAliveError = 0;
+        chanParam param = getAsCP(0);
+        if (param.opcode != 0xA1 || param.bs > 0xF)
+        {
+            emit log("Error: Wrong Response to KeepAlive");
+            setChannelClosed();
+            return;
+        }
+        else
+        {
+            bs = param.bs;
+            t1 = param.T1;
+            t3 = param.T3;
+            lastResponse->removeFirst();
+            if (lastResponse->length() > 0)
+            {
+                savedResponse = lastResponse;
+            }
+        }
+    }
 }
 
 bool tp20::getResponseStatus(int expectedResult)
@@ -611,7 +728,7 @@ bool tp20::getResponseStatus(int expectedResult)
     if (status == expectedResult) {
         return tmp;
     }
-
+    emit log("Wrong Status: " + status);
     emit log("Error: Wrong response while getting status", responseErrorLog);
     emit log(decodeError(status), responseErrorLog);
 
@@ -623,12 +740,14 @@ bool tp20::checkForCommands() {
         quint8 op = lastResponse->at(i)->data.at(0);
         if (op == 0xA3) { // channel test
             emit log("Received channel test command, sending response", keepAliveLog);
+            //lastResponse->removeAt(i--);
+            //savedResponse = lastResponse;
+            //sendKeepAlive();
             writeToElmStr("A3");
             getResponseStr();
 
             // reset keep alive timer
             QMetaObject::invokeMethod(&keepAliveTimer, "start", Qt::QueuedConnection);
-
             lastResponse->removeAt(i--);
         }
         else if (op == 0xA8 || op == 0xA4) { // close channel, break
@@ -639,7 +758,7 @@ bool tp20::checkForCommands() {
     return true;
 }
 
-bool tp20::getResponseCAN(bool replyExpected)
+bool tp20::getResponseCAN(bool replyExpected, bool closingChannel)
 {
     int status;
 
@@ -651,16 +770,16 @@ bool tp20::getResponseCAN(bool replyExpected)
 
     lastResponse = elm->getResponseCAN(status);
     if (!checkForCommands()) { // disconnect command must have occurred
-        return false;
+      //  return false;
     }
-    if (lastResponse->empty()) {
+    if (lastResponse->empty() && !closingChannel) {
         status |= NO_DATA_RESPONSE; // account for removal of A3 tests
     }
 
     if (replyExpected && status == 0) {
         return true;
     }
-    else if (!replyExpected && status == NO_DATA_RESPONSE) {
+    else if (!replyExpected && (status & NO_DATA_RESPONSE)) {
         return true;
     }
     else if (!replyExpected && status == 0) {

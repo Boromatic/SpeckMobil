@@ -2,6 +2,7 @@
     <qresource prefix="/">
         <file>resources/red.png</file>
         <file>resources/green.png</file>
-        <file>resources/gauge.png</file>
+        <file>resources/icon.ico</file>
+        <file>resources/icon.png</file>
     </qresource>
 </RCC>

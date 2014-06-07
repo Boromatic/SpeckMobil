@@ -1,0 +1,5 @@
+standard diagnosis then leave module
+error handling
+TPDU send again
+priority
+timing

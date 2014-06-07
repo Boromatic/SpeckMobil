@@ -1,42 +1,38 @@
 /*
-Copyright 2013 Jared Wiltshire
+SpeckMobil - Experimental TP2.0-KWP2000 Software
 
-This file is part of VAG Blocks.
+Copyright (C) 2014 Matthias Amberg
 
-VAG Blocks is free software: you can redistribute it and/or modify
+Derived from VAG Blocks, Copyright 2013 Jared Wiltshire
+
+SpeckMobil is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+any later version.
 
-VAG Blocks is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with VAG Blocks.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "kwp2000.h"
 #include "util.h"
+#include "qeventloop.h"
 
-#include <QDebug>
-#include <QDateTime>
-#include <QDir>
-#include <QRegExp>
-#include "qmath.h"
-
+/**
+ * @brief KWP2000
+ *
+ * @param parent
+ */
 kwp2000::kwp2000(QObject *parent) :
     QObject(parent),
-    nextBlock(0),
-    readingBlocks(false),
-    logFile(0),
-    labelFile(0),
-    doModuleRefresh(true),
     destModule(-1),
-    slowRecvTimeout(40),
-    normRecvTimeout(24),
-    fastRecvTimeout(16)
+    normRecvTimeout(100),
+    diagSession(0)
 {
     elmThread = new QThread(this);
     tpThread = new QThread(this);
@@ -54,25 +50,25 @@ kwp2000::kwp2000(QObject *parent) :
 
     connect(elm, SIGNAL(log(QString, int)), this, SIGNAL(log(QString, int)));
     connect(tp, SIGNAL(log(QString, int)), this, SIGNAL(log(QString, int)));
-
-    connect(tp, SIGNAL(channelOpened(bool)), this, SLOT(channelOpenSlot(bool)));
-    connect(tp, SIGNAL(channelOpened(bool)), this, SIGNAL(channelOpen(bool)));
-    connect(tp, SIGNAL(elmInitDone(bool)), this, SIGNAL(elmInitialised(bool)));
-    connect(tp, SIGNAL(elmInitDone(bool)), this, SLOT(openGW_refresh(bool)));
-
-    connect(elm, SIGNAL(portOpened(bool)), this, SIGNAL(portOpened(bool)));
+    connect(tp, SIGNAL(elmInitDone(bool)), this, SIGNAL(elmInitDone(bool)));
     connect(elm, SIGNAL(portClosed()), this, SIGNAL(portClosed()));
+//    connect(elm, SIGNAL(receivedData()), &longloop, SLOT(quit()));
 
-    readBlockTimer.setInterval(500);
-    connect(&readBlockTimer, SIGNAL(timeout()), this, SLOT(readBlockTimeout()));
+    connect(tp, SIGNAL(channelOpened(bool)), this, SLOT(channelOpenedClosed(bool)));
+    connect(tp, SIGNAL(channelOpened(bool)), this, SIGNAL(channelOpened(bool)));
 
     initModuleNames();
+    initResponseCodes();
 }
 
+/**
+ * @brief
+ *
+ */
 kwp2000::~kwp2000()
 {
     QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
-    closePortBlocking();
+    closePort();
 
     tpThread->exit(0);
     elmThread->exit(0);
@@ -88,29 +84,34 @@ kwp2000::~kwp2000()
     }
 }
 
+/**
+ * @brief Open the COM-port.
+ *
+ */
 void kwp2000::openPort()
 {
     if (tp->getChannelDest() >= 0) {
         QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
     }
-    QMetaObject::invokeMethod(elm, "openPort", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(elm, "openPort", Qt::BlockingQueuedConnection);
 }
 
+/**
+ * @brief Close the COM-port.
+ *
+ */
 void kwp2000::closePort() {
-    if (tp->getChannelDest() >= 0) {
-        QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
-    }
-    QMetaObject::invokeMethod(elm, "closePort", Qt::QueuedConnection);
-}
-
-void kwp2000::closePortBlocking()
-{
     if (tp->getChannelDest() >= 0) {
         QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
     }
     QMetaObject::invokeMethod(elm, "closePort", Qt::BlockingQueuedConnection);
 }
 
+/**
+ * @brief Open a module with channel i.
+ *
+ * @param i numer of the channel
+ */
 void kwp2000::openChannel(int i) {
     if (getChannelDest() >= 0) {
         return;
@@ -119,8 +120,6 @@ void kwp2000::openChannel(int i) {
     if (i == 0) {
         return;
     }
-
-    blockLabels.clear();
 
     int addr;
     if (moduleList.contains(i)) {
@@ -133,16 +132,25 @@ void kwp2000::openChannel(int i) {
     destModule = i;
 
     emit log("Opening channel to module 0x" + toHex(destModule));
-    QMetaObject::invokeMethod(tp, "openChannel", Qt::QueuedConnection,
+    QMetaObject::invokeMethod(tp, "openChannel", Qt::BlockingQueuedConnection,
                               Q_ARG(int, addr),
                               Q_ARG(int, normRecvTimeout));
 }
 
+/**
+ * @brief Close the open module.
+ *
+ */
 void kwp2000::closeChannel() {
     emit log("Closing channel to module 0x" + toHex(destModule));
-    QMetaObject::invokeMethod(tp, "closeChannel", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
 }
 
+/**
+ * @brief Set parameters for COM-port.
+ *
+ * @param in parameters for serial settings
+ */
 void kwp2000::setSerialParams(const serialSettings &in)
 {
     if (tp->getChannelDest() >= 0) {
@@ -151,365 +159,235 @@ void kwp2000::setSerialParams(const serialSettings &in)
     elm->setSerialParams(in);
 }
 
+/**
+ * @brief Returns number of channel to opened module.
+ *
+ * @return int number of channer to opened module or -1 if no channel opened
+ */
 int kwp2000::getChannelDest() const
 {
     return tp->getChannelDest();
 }
 
-int kwp2000::getNumBlocksOpen() const
-{
-    return currentBlocks.keys().length();
-}
-
-bool kwp2000::getBlockOpen(int i) const
-{
-    return currentBlocks.contains(static_cast<quint8>(i));
-}
-
+/**
+ * @brief Returns true if COM-port connected.
+ *
+ * @return bool true for COM-port connected
+ */
 bool kwp2000::getPortOpen() const
 {
     return elm->getPortOpen();
 }
 
+/**
+ * @brief Returns true if ELM327 is correctly initialized.
+ *
+ * @return bool true for correct ELM327 initializing.
+ */
 bool kwp2000::getElmInitialised() const
 {
     return tp->getElmInitialised();
 }
 
+void kwp2000::pause()
+{
+    QEventLoop loop;
+    QTimer::singleShot(900, &loop, SLOT(quit()));
+    loop.exec();
+}
+
+/**
+ * @brief Start a diagnostic session to opened module.
+ *
+ * @param param type of diagnostic session, default = 0x89, that is VW specific diagnosis
+ */
 void kwp2000::startDiag(int param)
 {
     QByteArray packet;
-    packet.append(0x10);
-    packet.append(param);
-    QMetaObject::invokeMethod(tp, "sendData", Qt::QueuedConnection,
+    //pause();
+//    packet.append(0x10);
+//    packet.append(param);
+//    QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
+//                              Q_ARG(QByteArray, packet),
+//                              Q_ARG(int, normRecvTimeout));
+    // do request for long ID
+   pause();
+    packet.clear();
+    packet.append(0x1A);
+    packet.append(0x9B); //Read calibration data
+    QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
                               Q_ARG(QByteArray, packet),
-                              Q_ARG(int, slowRecvTimeout));
-}
+                              Q_ARG(int, normRecvTimeout));
+    pause();
+    //QMetaObject::invokeMethod(tp, "sendKeepAlive", Qt::BlockingQueuedConnection);
 
-void kwp2000::openBlock(int blockNum)
-{
-    if (!currentBlocks.contains(blockNum)) {
-        currentBlocks.insert(blockNum, QVector<blockValue>(4));
+    // now send request for short ID
+    packet.clear();
+    packet.append(0x1A);
+    packet.append(0x91); //Read HW Number
+    QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
+                              Q_ARG(QByteArray, packet),
+                              Q_ARG(int, normRecvTimeout));
+    pause();
+    //QMetaObject::invokeMethod(tp, "sendKeepAlive", Qt::BlockingQueuedConnection);
 
-        // set descriptions from label file
+    packet.clear();
+    packet.append(0x1A);
+    packet.append(0x97); //Read systemName
+    QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
+                              Q_ARG(QByteArray, packet),
+                              Q_ARG(int, normRecvTimeout));
+    pause();
+    //QMetaObject::invokeMethod(tp, "sendKeepAlive", Qt::BlockingQueuedConnection);
 
-        emit blockOpen(blockNum);
+    packet.clear();
+    packet.append(0x1A);
+    packet.append(0x86); //Read ManufacuterSepcific Data (Serial Number)
+    QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
+                              Q_ARG(QByteArray, packet),
+                              Q_ARG(int, normRecvTimeout));
+    pause();
+    //QMetaObject::invokeMethod(tp, "sendKeepAlive", Qt::BlockingQueuedConnection);
+
+    if (tp->getChannelDest() == 1)  // only Engine
+    {
+        packet.clear();
+        packet.append(0x1A);
+        packet.append(0x90); //Read VIN
+        QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
+                                  Q_ARG(QByteArray, packet),
+                                  Q_ARG(int, normRecvTimeout));
+       // QMetaObject::invokeMethod(tp, "sendKeepAlive", Qt::BlockingQueuedConnection);
     }
-
-    changeSampleFormat();
-
-    if (!readingBlocks) {
-        readingBlocks = true;
-        readBlocks();
-    }
 }
 
-void kwp2000::closeBlock(int blockNum)
-{
-    currentBlocks.remove(static_cast<quint8>(blockNum));
-    emit blockClosed(blockNum);
-    changeSampleFormat();
-}
-
-void kwp2000::closeAllBlocks()
-{
-    QList<int> openBlocks = currentBlocks.keys();
-    currentBlocks.clear();
-
-    for (int i = 0; i < openBlocks.length(); i++) {
-        emit blockClosed(openBlocks.at(i));
-    }
-
-    changeSampleFormat();
-}
-
-void kwp2000::channelOpenSlot(bool status)
+/**
+ * @brief Prints text if channel opened or closed
+ *
+ * @param status
+ */
+void kwp2000::channelOpenedClosed(bool status)
 {
     if (status == false) {
         if (destModule >= 0) {
             emit log("Channel closed to module 0x" + toHex(destModule));
         }
+        diagSession = 0;
         destModule = -1;
-
-        modulePartNum.clear();
-        closeAllBlocks();
-        emit labelsLoaded(false);
     }
     else {
+        diagSession = 81;
+        serNum = "";
+        vin = "";
+        hwNum.clear();
+        ecuInfo.coding = "";
+        ecuInfo.shopNum[0] = 0;
+        ecuInfo.shopNum[1] = 0;
+        ecuInfo.shopNum[2] = 0;
+        ecuInfo.swNum = "";
+        ecuInfo.swVers = "";
+        ecuInfo.systemId = "";
         emit log("Channel opened to module 0x" + toHex(destModule));
-
-        if (tp->getChannelDest() == 31 && doModuleRefresh) {
-            QByteArray tmp;
-            tmp.append(0x1A);
-            tmp.append(0x9F);
-            QMetaObject::invokeMethod(tp, "sendData", Qt::QueuedConnection,
-                                      Q_ARG(QByteArray, tmp),
-                                      Q_ARG(int, slowRecvTimeout));
-        }
-        else {
-            // when channel is opened, start diagnostic session
-            // when diag session started the ID strings will be retrieved
-            startDiag();
-        }
     }
 }
 
-void kwp2000::miscCommand(const QByteArray &cmd)
-{
-    QMetaObject::invokeMethod(tp, "sendData", Qt::QueuedConnection,
-                              Q_ARG(QByteArray, cmd),
-                              Q_ARG(int, slowRecvTimeout));
-}
-
-void kwp2000::changeSampleFormat()
-{
-    sample.clear();
-
-    QList<int> openBlocks = currentBlocks.keys();
-    for (int i = 0; i < openBlocks.length(); i++) {
-        int blockNum = openBlocks.at(i);
-
-        for (int pos = 0; pos < 4; pos++) {
-            blockRef tmpRef = {blockNum, pos};
-
-            bool matchFound = false;
-
-            // check and see if an equivilent sampleValue already exists
-            if (pos == 0 && blockLabels[blockNum].desc[0].toLower() == "engine speed") {
-                for (int sampleNum = 0; sampleNum < sample.length(); sampleNum++) {
-                    int existingBlock = sample[sampleNum].refs[0].blockNum;
-                    int existingPos = sample[sampleNum].refs[0].pos;
-
-                    if (existingPos == 0 && blockLabels[existingBlock].desc[0].toLower() == "engine speed") {
-                        matchFound = true;
-                        currentBlocks[blockNum][pos].indexToSampleValue = sampleNum;
-                        sample[sampleNum].refs.append(tmpRef);
-                    }
-                }
-            }
-
-            if (!matchFound) {
-                // insert new sampleValue
-                sampleValue value;
-                value.refs.append(tmpRef);
-                currentBlocks[blockNum][pos].indexToSampleValue = sample.length();
-                sample.append(value);
-            }
-        }
-    }
-
-    emit sampleFormatChanged();
-}
-
-void kwp2000::startLogging()
-{
-    QDir(".").mkdir("Logs");
-
-    logFileName = "Logs/" + QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss") + ".csv";
-
-    logFile = new QFile(logFileName, this);
-    logFile->open(QIODevice::WriteOnly | QIODevice::Text);
-    logOut.setDevice(logFile);
-
-    // print header
-    logOut << "Time";
-    for (int i = 0; i < sample.length(); i++) {
-        int sampleBlockNum = sample[i].refs[0].blockNum;
-        int samplePos = sample[i].refs[0].pos;
-        logOut << "," + blockLabels[sampleBlockNum].desc[samplePos];
-        logOut << " " + blockLabels[sampleBlockNum].subDesc[samplePos];
-        logOut << " [" + currentBlocks[sampleBlockNum][samplePos].units + "]";
-    }
-    logOut << endl;
-    logOut.flush();
-
-    emit loggingStarted();
-}
-
-void kwp2000::stopLogging()
-{
-    logOut.setDevice(0);
-    logFile->close();
-    delete logFile;
-    logFile = 0;
-}
-
-void kwp2000::loadLabelFile()
-{
-    if (modulePartNum.empty()) {
-        emit labelsLoaded(false);
-        return;
-    }
-
-    QString partNum;
-    int end = modulePartNum.at(0).indexOf(QChar(' '));
-    if (end < 0) {
-        partNum = modulePartNum.at(0);
-    }
-    else {
-        partNum = modulePartNum.at(0).left(end);
-    }
-
-    QStringList partSplit;
-    for (int i = 0; i < partNum.length(); i += 3) {
-        partSplit << partNum.mid(i, 3);
-    }
-    partNum = partSplit.join("-");
-
-    if (labelDir.length() == 0) {
-        emit labelsLoaded(false);
-        return;
-    }
-
-    QDir dir(labelDir);
-    if (!dir.exists()) {
-        emit labelsLoaded(false);
-        return;
-    }
-
-    labelFileName = dir.absolutePath() + "/User/" + partNum + ".lbl";
-    labelFile = new QFile(labelFileName, this);
-
-    // try to find labels from direct part name
-    // check user folder first, then root label dir
-    if (!labelFile->exists()) {
-        labelFileName = dir.absolutePath() + "/" + partNum + ".lbl";
-        labelFile->setFileName(labelFileName);
-
-        if (!labelFile->exists()) {
-            // try to find labels from redirect files
-            // check user folder first, then root label dir
-            QString fileName = findLabelFromRedir(partNum, dir.absolutePath() + "/User");
-            if (fileName.length() == 0) {
-                fileName = findLabelFromRedir(partNum, dir.absolutePath());
-            }
-            if (fileName.length() == 0) {
-                emit labelsLoaded(false);
-                return;
-            }
-
-            // got label file name from redirect, now find file in user or root dir
-            labelFileName = dir.absolutePath() + "/User/" + fileName;
-            labelFile->setFileName(labelFileName);
-
-            if (!labelFile->exists()) {
-                labelFileName = dir.absolutePath() + "/" + fileName;
-                labelFile->setFileName(labelFileName);
-
-                if (!labelFile->exists()) {
-                    emit labelsLoaded(false);
-                    return;
-                }
-            }
-        }
-    }
-
-    labelFile->open(QIODevice::ReadOnly);
-    labelIn.setDevice(labelFile);
-
-    int blockNum = -1;
-    int pos = -1;
-    while(!labelIn.atEnd()) {
-        QString line = labelIn.readLine();
-        if (line.length() > 0) {
-            char firstChar = line.at(0).toAscii();
-            if (firstChar >= 48 && firstChar <= 57) {
-                bool ok;
-
-                QStringList parts = line.split(QChar(','));
-                if (parts.length() < 3) {
-                    continue;
-                }
-
-                blockNum = parts.at(0).toInt(&ok);
-                if (!ok || blockNum < 0 || blockNum > 255) {
-                    continue;
-                }
-
-                pos = parts.at(1).toInt(&ok);
-                if (!ok || pos < 0 || pos > 4) {
-                    continue;
-                }
-
-                if (!blockLabels.contains(blockNum)) {
-                    blockLabels_t newBlockLabel;
-                    blockLabels.insert(blockNum, newBlockLabel);
-                }
-
-                if (pos == 0) {
-                    blockLabels[blockNum].blockName = parts.at(2);
-                    continue;
-                }
-
-                blockLabels[blockNum].desc[pos-1] = parts.at(2);
-                if (parts.length() > 3) {
-                    blockLabels[blockNum].subDesc[pos-1] = parts.at(3);
-                }
-                if (parts.length() > 4) {
-                    QString longDesc = parts.at(4);
-                    blockLabels[blockNum].longDesc[pos-1] = longDesc.replace("\\n", "\n");
-                }
-            }
-
-            // binary description
-            if (firstChar == ';' && line.contains(QChar('='))) {
-                if (blockNum < 0 || blockNum > 255 || pos < 0 || pos > 4) {
-                    continue;
-                }
-                if (!blockLabels.contains(blockNum)) {
-                    continue;
-                }
-                blockLabels[blockNum].binDesc[pos-1] += line.mid(2) + '\n';
-            }
-        }
-    }
-
-    if (blockLabels.count() > 0) {
-        emit labelsLoaded(true);
-    }
-    else {
-        emit labelsLoaded(false);
-    }
-
-    labelIn.setDevice(0);
-    labelFile->close();
-    delete labelFile;
-    labelFile = 0;
-}
-
+/**
+ * @brief
+ *
+ * @param ok
+ */
 void kwp2000::openGW_refresh(bool ok)
 {
     if (ok) {
-        doModuleRefresh = true;
-        QMetaObject::invokeMethod(tp, "openChannel", Qt::QueuedConnection,
-                                  Q_ARG(int, 31),
+        destModule = 31;
+        QMetaObject::invokeMethod(tp, "openChannel", Qt::BlockingQueuedConnection,
+                                  Q_ARG(int, destModule),
                                   Q_ARG(int, normRecvTimeout));
+        QByteArray packet;
+        pause();
+        packet.append(0x1A);
+        packet.append(0x9F);
+        QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
+                                  Q_ARG(QByteArray, packet),
+                                  Q_ARG(int, normRecvTimeout));
+      //  QMetaObject::invokeMethod(tp, "sendKeepAlive", Qt::BlockingQueuedConnection);
     }
 }
 
-void kwp2000::readBlocks()
+/**
+ * @brief
+ *
+ */
+void kwp2000::readErrors()
 {
-    QList<int> openBlocks = currentBlocks.keys();
-    if (openBlocks.empty()) {
-        nextBlock = 0;
-        readingBlocks = false;
-        return;
-    }
-
-    if (nextBlock >= openBlocks.length()) {
-        nextBlock = 0;
-    }
-
     QByteArray packet;
-    packet.append(0x21);
-    packet.append(openBlocks.at(nextBlock++));
-
-    QMetaObject::invokeMethod(tp, "sendData", Qt::QueuedConnection,
+    pause();
+    packet.append(0x18); //readDiagnosticTroubleCodesByStatus
+    packet.append(0x02); //requestStoredDTCAndStatus
+    packet.append(0xFF);
+    packet.append((char)0x00);
+    QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
                               Q_ARG(QByteArray, packet),
-                              Q_ARG(int, fastRecvTimeout));
-    readBlockTimer.start();
+                              Q_ARG(int, normRecvTimeout));
+   // QMetaObject::invokeMethod(tp, "sendKeepAlive", Qt::BlockingQueuedConnection);
+
+    //debug
+//    packet.clear();
+//    packet.append(0x18); //readDiagnosticTroubleCodesByStatus
+//    packet.append(0x03); //requestAllDTCAndStatus
+//    packet.append(0xFF);
+//    packet.append((char)0x00);
+//    QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
+//                              Q_ARG(QByteArray, packet),
+//                              Q_ARG(int, normRecvTimeout));
+//    QMetaObject::invokeMethod(tp, "sendKeepAlive", Qt::BlockingQueuedConnection);
+    //\debug
 }
 
+/**
+ * @brief
+ *
+ * @param parm1
+ * @param parm2
+ */
+void kwp2000::sendOwn(int parm1, int parm2)
+{
+    if (((0 <= parm1) <= 255) && ((0 <= parm2) <= 255))
+    {
+        QByteArray packet;
+        pause();
+        packet.append(parm1);
+        packet.append(parm2);
+        emit log("Send: " + toHex(parm1) + toHex(parm2));
+        QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
+                                  Q_ARG(QByteArray, packet),
+                                  Q_ARG(int, normRecvTimeout));
+     //   QMetaObject::invokeMethod(tp, "sendKeepAlive", Qt::BlockingQueuedConnection);
+    }
+}
+
+/**
+ * @brief
+ *
+ */
+void kwp2000::deleteErrors()
+{
+    QByteArray packet;
+    pause();
+    packet.append(0x14);
+    packet.append(0xFF);
+    packet.append((char)0x00);
+    QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
+                              Q_ARG(QByteArray, packet),
+                              Q_ARG(int, normRecvTimeout));
+   // QMetaObject::invokeMethod(tp, "sendKeepAlive", Qt::BlockingQueuedConnection);
+}
+
+/**
+ * @brief
+ *
+ * @param data
+ */
 void kwp2000::recvKWP(QByteArray *data)
 {
     if (!data) {
@@ -530,35 +408,42 @@ void kwp2000::recvKWP(QByteArray *data)
     data->remove(0,2);
 
     if (respCode == 0x7F) {
+        //negative response
         emit log("Warning: Received negative KWP response to " + toHex(param) + " command");
         if (data->length() > 0) {
             quint8 reasonCode = static_cast<quint8>(data->at(0));
+            if (reasonCode == 0x78)
+            {
+                QMetaObject::invokeMethod(tp, "stopKeepAliveTimer", Qt::QueuedConnection);
+                emit log("Waiting for Data...");
+                delete data;
+                //QTimer::singleShot(10000, &longloop, SLOT(quit()));
+                //longloop.exec();
+                //QMetaObject::invokeMethod(tp, "waitForData", Qt::QueuedConnection);
+                //todo reaction to 0x78
+                return;
+            }
+            QString reasonName = responseCode.value(reasonCode, "Unknown reason");
             emit log("Reason code " + toHex(reasonCode));
-        }
+            emit log(reasonName);
+                }
         delete data;
         return;
     }
 
+    //positive responses
     switch (respCode) {
     case 0x50:
+        // startDiagnosticSession
         startDiagHandler(data, param);
         break;
     case 0x5A:
-        if (param == 0x91) {
-            shortIdHandler(data);
-        }
-        else if (param == 0x9B) {
-            longIdHandler(data);
-        }
-        else if (param == 0x9F) {
-            queryModulesHandler(data);
-        }
-        else {
-            miscHandler(data, respCode, param);
-        }
+        // readEcuIdentification
+        startIdHandler(data, param);
         break;
-    case 0x61:
-        blockDataHandler(data, param);
+    case 0x58:
+        // interpret DTCs
+        DTCHandler(data, param);
         break;
     default:
         miscHandler(data, respCode, param);
@@ -566,66 +451,185 @@ void kwp2000::recvKWP(QByteArray *data)
     }
 }
 
-void kwp2000::readBlockTimeout()
-{
-    readBlocks();
-}
-
-void kwp2000::blockDataHandler(QByteArray *data, quint8 param)
-{
-    quint8 blockNum = param;
-
-    if (!currentBlocks.contains(blockNum)) {
-        emit log("Warning: Got values for block " + QString::number(blockNum) + " but its not open.");
-        delete data;
-        readBlocks();
-        return;
-    }
-
-    for (int i = 0; i < 4; i++) {
-        QString units;
-        QVariant val = decodeBlockData(data->at(i*3), data->at(i*3+1), data->at(i*3+2), units);
-
-        currentBlocks[blockNum][i].units = units;
-        currentBlocks[blockNum][i].val = val;
-    }
-
-    emit newBlockData(blockNum);
-
-    updateSample(blockNum);
-
-    if (logFile) {
-        writeSample();
-    }
-
-    delete data;
-    readBlocks();
-}
-
+/**
+ * @brief
+ *
+ * @param data
+ * @param param
+ */
 void kwp2000::startDiagHandler(QByteArray *data, quint8 param)
 {
-    emit diagStarted(param);
+    diagSession = param;
     delete data;
-
-    // do request for long ID
-    QByteArray tmp;
-    tmp.append(0x1A);
-    tmp.append(0x9B);
-    QMetaObject::invokeMethod(tp, "sendData", Qt::QueuedConnection,
-                              Q_ARG(QByteArray, tmp),
-                              Q_ARG(int, slowRecvTimeout));
 }
 
+/**
+ * @brief
+ *
+ * @param data
+ * @param param
+ */
+void kwp2000::startIdHandler(QByteArray *data, quint8 param)
+{
+    if (param == 0x9F) {
+        queryModulesHandler(data);
+        return;
+    }
+    else if (param == 0x86) {
+        serNum = "";
+        serialHandler(data);
+    }
+    else if (param == 0x90) {
+        vin = "";
+        vinHandler(data);
+    }
+    else if (param == 0x91) {
+        hwNum.clear();
+        shortIdHandler(data);
+    }
+    else if (param == 0x9A) {
+        ecuInfo.coding = "";
+        longCodingHandler(data);
+    }
+
+    else if (param == 0x9B) {
+        ecuInfo.coding = "";
+        ecuInfo.shopNum[0] = 0;
+        ecuInfo.shopNum[1] = 0;
+        ecuInfo.shopNum[2] = 0;
+        ecuInfo.swNum = "";
+        ecuInfo.swVers = "";
+        ecuInfo.systemId = "";
+        longIdHandler(data);
+    }
+    else {
+        emit log("Error: Unknown ID Parameter");
+        miscHandler(data, 0x50, param);
+    }
+    emit newModuleInfo(ecuInfo, hwNum , vin, serNum);
+    return;
+
+
+}
+
+/**
+ * @brief
+ *
+ * @param data
+ * @param param
+ */
+void kwp2000::DTCHandler(QByteArray *data, quint8 NumDTCs)
+
+{
+    nDTCs.sum = QString::number(NumDTCs);
+    nDTCs.part = "";
+    if (data->length() < (NumDTCs * 3))
+    {
+        emit log("DTC-data too short");
+        delete data;
+        return;
+    }
+    else if (NumDTCs > 0)
+    {
+        for (int i = 0; i < (NumDTCs * 3); i+=3) {
+            quint64 codenumber = 0;
+            codenumber |=  (unsigned char)(data->at(i));
+            codenumber <<= 8;
+            codenumber |=  (unsigned char)(data->at(i+1));
+            nDTCs.part.append(QString("%1").arg(codenumber, 5, 10, QChar('0')));
+            nDTCs.part.append("-");
+            codenumber = (unsigned char)(data->at(i+2));
+            nDTCs.part.append(QString("%1").arg(codenumber, 2, 16, QChar('0')));
+            nDTCs.part.append(" ");
+        }
+    }
+    else
+    {
+        nDTCs.part.append(" ");
+    }
+    emit newDTCs(nDTCs);
+    delete data;
+}
+
+
+/**
+ * @brief
+ *
+ * @param data
+ * @param respCode
+ * @param param
+ */
 void kwp2000::miscHandler(QByteArray *data, quint8 respCode, quint8 param)
 {
     emit log("Misc command: Response code" + toHex(respCode) + ", parameter " + toHex(param));
     delete data;
 }
 
+void kwp2000::serialHandler(QByteArray *data)
+{
+    quint8 len = static_cast<quint8>(data->at(0));
+    if (data->length() >= (len + 1))
+    {
+        for (int i = 1; i < (len + 1); i++) {
+            serNum += QChar(data->at(i));
+        }
+        while(serNum.right(1) == QChar(' ')) {
+            serNum.chop(1);
+        }
+    }
+    delete data;
+}
+
+void kwp2000::vinHandler(QByteArray *data)
+{
+    vin = "";
+    for (int i = 0; i < data->length(); i++) {
+        vin += QChar(data->at(i));
+        while(vin.right(1) == QChar(' ')) {
+            vin.chop(1);
+        }
+    }
+    delete data;
+}
+
+void kwp2000::longCodingHandler(QByteArray *data)
+{
+    if (data->at(10) != 0x10)
+    {
+        emit log("LongCoding Error");
+    }
+    else
+    {
+        emit log("Long Coding", debugMsgLog);
+
+        quint8 len = static_cast<quint8>(data->at(11));
+        if (data->length() < (len + 12))
+        {
+            emit log("LongCoding Date too short");
+            delete data;
+            return;
+        }
+        else if (len > 0)
+        {
+            quint64 codenumber = 0;
+            for (int i = 12; i < (len + 12 - 1); i++) {
+                codenumber <<= 8;
+                codenumber |=  (unsigned char)(data->at(i));
+            }
+            ecuInfo.coding.append(QString("%1").arg(codenumber, 8, 16, QChar('0'))).toUpper();
+        }
+    }
+    delete data;
+}
+
+/**
+ * @brief
+ *
+ * @param data
+ */
 void kwp2000::shortIdHandler(QByteArray *data) {
     QStringList tmpList;
 
-    // rewrite to use interpretRawData()
     for (int i = 0; i < data->length();) {
         if (static_cast<quint8>(data->at(i)) == 0xFF) {
             break;
@@ -643,50 +647,98 @@ void kwp2000::shortIdHandler(QByteArray *data) {
         tmpList << tmp;
     }
 
-    ecuPartNum = tmpList;
-    emit newEcuInfo(ecuPartNum);
-
+    hwNum = tmpList;
     delete data;
 }
 
+/**
+ * @brief
+ *
+ * @param data
+ */
 void kwp2000::longIdHandler(QByteArray *data)
 {
-    QStringList tmpList;
-    QString tmp;
-
-    for (int i = 0; i < 16; i++) {
-        tmp += QChar(data->at(i));
+    for (int i = 0; i < 12; i++) {
+        ecuInfo.swNum += QChar(data->at(i)); //Software part number
     }
-    tmpList << tmp;
 
-    tmp.clear();
+    for (int i = 12; i < 16; i++) {
+        if (12 == i)
+        {
+            ecuInfo.swVers += QChar(data->at(i) & 0b01111111); // first bit has to be 0
+        }
+        else {
+            ecuInfo.swVers += QChar(data->at(i));  //Software version
+        }
+    }
+
+    if (data->at(16) == 0x03)
+    {
+        emit log("Short coding", debugMsgLog);
+        quint64 codenumber = 0;
+
+    for (int i = 17; i < 20; i++) {
+        codenumber <<= 8;
+        codenumber |=  (unsigned char)(data->at(i));
+    }
+    ecuInfo.coding.append(QString("%1").arg(codenumber, 8, 10, QChar('0')));
+    }
+    else if (data->at(16) == 0x10)
+    {
+        emit log("Start reading long coding", debugMsgLog);
+
+        QByteArray packet;
+        pause();
+        packet.clear();
+        packet.append(0x1A);
+        packet.append(0x9A); //Read Long Coding
+        QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
+                                  Q_ARG(QByteArray, packet),
+                                  Q_ARG(int, normRecvTimeout));
+    //    QMetaObject::invokeMethod(tp, "sendKeepAlive", Qt::BlockingQueuedConnection);
+
+    }
+
+    //Shop number 6 Byte: 21bit=3.Block, 10bit=2.Block, 17bit=1.Block
+    //8+8+[5 3]+[7 1]+8+8
+    for (int i = 20; i < 23; i++) {
+        ecuInfo.shopNum[2] <<= 8;
+        ecuInfo.shopNum[2] |=  (unsigned char)data->at(i);
+    }
+    ecuInfo.shopNum[2] >>= 3;
+
+    for (int i = 22; i < 24; i++) {
+        ecuInfo.shopNum[1] <<= 8;
+        ecuInfo.shopNum[1] |=  (unsigned char)data->at(i);
+    }
+    ecuInfo.shopNum[1] >>= 1;
+    ecuInfo.shopNum[1] &= 0x3FF;  //10 bit
+
+    for (int i = 23; i < 26; i++) {
+        ecuInfo.shopNum[0] <<= 8;
+        ecuInfo.shopNum[0] |=  (unsigned char)data->at(i);
+    }
+    ecuInfo.shopNum[0] &= 0x1FFFF;  //17 bit
+
     for (int i = 26; i < data->length(); i++) {
-        tmp += QChar(data->at(i));
+        ecuInfo.systemId += QChar(data->at(i));
     }
-    while(tmp.right(1) == QChar(' ')) {
-        tmp.chop(1);
+    while(ecuInfo.systemId.right(1) == QChar(' ')) {
+        ecuInfo.systemId.chop(1);   //System identifier
     }
-    tmpList << tmp;
-
-    modulePartNum = tmpList;
-    emit newModuleInfo(modulePartNum);
-    loadLabelFile();
-
-    // now send request for short ID
-    QByteArray tmpBA;
-    tmpBA.append(0x1A);
-    tmpBA.append(0x91);
-    QMetaObject::invokeMethod(tp, "sendData", Qt::QueuedConnection,
-                              Q_ARG(QByteArray, tmpBA),
-                              Q_ARG(int, slowRecvTimeout));
 
     delete data;
 }
 
+/**
+ * @brief
+ *
+ * @param data
+ */
 void kwp2000::queryModulesHandler(QByteArray *data)
 {
     QList<QByteArray> dataList = interpretRawData(data);
-    delete data;
+   // delete data;
 
     if (dataList.length() != 2) {
         emit log("List modules: Didn't get list of 2 byte arrays");
@@ -696,9 +748,10 @@ void kwp2000::queryModulesHandler(QByteArray *data)
 
     moduleList.clear();
 
+    //todo: no loop
     for (int i = 0; i < dataList.at(0).length(); i+=4) {
         if (i+4 > dataList.at(0).length()) {
-            emit log("List modules: Not divisable by 4.");
+            emit log("Error! List modules: Not complete.");
             QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
             return;
         }
@@ -724,81 +777,15 @@ void kwp2000::queryModulesHandler(QByteArray *data)
     }
 
     emit moduleListRefreshed();
-    doModuleRefresh = false;
     QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
 }
 
-void kwp2000::writeSample()
-{
-    logOut << QTime::currentTime().toString("HH:mm:ss.zzz");
-    for (int i = 0; i < sample.length(); i++) {
-        logOut << "," + sample.at(i).val.toString();
-    }
-    logOut << endl;
-    logOut.flush();
-}
-
-void kwp2000::updateSample(int block)
-{
-    for (int i = 0; i < 4; i++) {
-        int sampleIndex = currentBlocks[block][i].indexToSampleValue;
-        sample[sampleIndex].val = currentBlocks[block][i].val;
-    }
-}
-
-QString kwp2000::findLabelFromRedir(QString partNum, QString dirStr)
-{
-    int moduleNum = tp->getChannelDest();
-
-    if (partNum.length() < 11 || partNum.length() > 15 || moduleNum < 0 || moduleNum > 255) {
-        return QString();
-    }
-
-    QDir dir(dirStr);
-    if (!dir.exists()) {
-        return QString();
-    }
-
-    QString redirFile = partNum.left(2) + QString("-%1.lbl").arg(moduleNum, 2, 16, QChar('0'));
-    QString redirFileFull = dir.absolutePath() + "/" + redirFile;
-
-    QFile file(redirFileFull);
-    if (!file.exists()) {
-        return QString();
-    }
-
-    file.open(QIODevice::ReadOnly);
-    QTextStream in(&file);
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        if (line.length() > 0 && line.startsWith("REDIRECT")) {
-            line.remove(QChar(' '));
-            int comment = line.indexOf(QChar(';'));
-            if (comment >= 0) {
-                line = line.left(comment);
-            }
-            QStringList split = line.split(QChar(','));
-
-            QString partFromLabel = split.at(2);
-            while (partFromLabel.right(1) == QChar('?') &&
-                   partFromLabel.length() > partNum.length()) {
-                partFromLabel.chop(1);
-            }
-            QRegExp match(partFromLabel, Qt::CaseInsensitive, QRegExp::Wildcard);
-
-            if (match.exactMatch(partNum)) {
-                QString tmp = split.at(1);
-                tmp.replace(".LBL", ".lbl");
-                tmp.replace(".CLB", ".lbl");
-                return tmp;
-            }
-        }
-    }
-
-    return QString();
-}
-
-// should rewrite to not work char by char
+/**
+ * @brief
+ *
+ * @param raw
+ * @return QList<QByteArray>
+ */
 QList<QByteArray> kwp2000::interpretRawData(QByteArray *raw)
 {
     QList<QByteArray> retList;
@@ -820,6 +807,46 @@ QList<QByteArray> kwp2000::interpretRawData(QByteArray *raw)
     return retList;
 }
 
+/**
+ * @brief
+ *
+ */
+void kwp2000::initResponseCodes()
+{
+    responseCode.insert(0x10, "generalReject");
+    responseCode.insert(0x11, "serviceNotSupported");
+    responseCode.insert(0x12, "subFunctionNotSupported-invalidFormat");
+    responseCode.insert(0x21, "busy-RepeatRequest");
+    responseCode.insert(0x22, "conditionsNotCorrect or requestSequenceError");
+    responseCode.insert(0x23, "routineNotCompleteOrServiceInProgress");
+    responseCode.insert(0x31, "requestOutOfRange");
+    responseCode.insert(0x33, "securityAccessDenied; securityAccessRequested");
+    responseCode.insert(0x35, "invalidKey");
+    responseCode.insert(0x36, "exceedNumberOfAttempts");
+    responseCode.insert(0x37, "requiredTimeDelayNotExpired");
+    responseCode.insert(0x40, "downloadNotAccepted");
+    responseCode.insert(0x41, "improperDownloadType");
+    responseCode.insert(0x42, "can'tDownloadToSpecifiedAddress");
+    responseCode.insert(0x43, "can'tDownloadNumberOfBytesRequested");
+    responseCode.insert(0x50, "uploadNotAccepted");
+    responseCode.insert(0x51, "improperUploadType");
+    responseCode.insert(0x52, "can'tUploadFromSpecifiedAddress");
+    responseCode.insert(0x53, "can'tUploadNumberOfBytesRequested");
+    responseCode.insert(0x71, "transferSuspended");
+    responseCode.insert(0x72, "transferAborted");
+    responseCode.insert(0x74, "illegalAddressInBlockTransfer");
+    responseCode.insert(0x75, "illegalByteCountInBlockTransfer");
+    responseCode.insert(0x76, "illegalBlockTransferType");
+    responseCode.insert(0x77, "blockTransferDataChecksumError");
+    responseCode.insert(0x78, "requestCorrectlyReceived-ResponsePending");
+    responseCode.insert(0x79, "incorrectByteCountDuringBlockTransfer");
+    responseCode.insert(0x80, "serviceNotSupportedInActiveDiagnosticSession");
+}
+
+/**
+ * @brief
+ *
+ */
 void kwp2000::initModuleNames()
 {
     moduleNames.insert(0x01, "Engine #1");
@@ -872,216 +899,43 @@ void kwp2000::initModuleNames()
     moduleNames.insert(0x77, "Telephone");
 }
 
-QVariant kwp2000::decodeBlockData(quint8 id, quint8 a, quint8 b, QString &units)
-{
-    //qDebug() << "ID " << id << QString::number(id, 16) << " A " << a << " B " << b << flush;
-
-    unsigned int uint;
-    double dbl;
-    QString ret;
-
-    switch (id) {
-    case 0x01:
-        units = "rpm";
-        dbl = a*b/5.0;
-        return dbl;
-    case 0x04:
-        if (b > 127) {
-            units = QString::fromUtf8("\u00B0 ATDC");
-        }
-        else {
-            units = QString::fromUtf8("\u00B0 BTDC");
-        }
-        dbl = abs(b-127)*0.01*a;
-        return dbl;
-    case 0x07:
-        units = "km/h";
-        dbl = 0.01*a*b;
-        return dbl;
-    case 0x08:
-        units = "Binary";
-        uint = (a << 8 | b);
-        return uint;
-    case 0x10:
-        units = "Binary";
-        uint = (a << 8 | b);
-        return uint;
-    case 0x11:
-        units = "ASCII";
-        ret = QChar::fromAscii(a);
-        ret += QChar::fromAscii(b);
-        return ret;
-    case 0x12:
-        units = "mbar";
-        dbl = a*b/25.0;
-        return dbl;
-    case 0x14:
-        units = "%";
-        dbl = a*b/128.0-1;
-        return dbl;
-    case 0x15:
-        units = "V";
-        dbl = a*b/1000.0;
-        return dbl;
-    case 0x16:
-        units = "ms";
-        dbl = 0.001*a*b;
-        return dbl;
-    case 0x17:
-        units = "%";
-        dbl = b*a/256.0;
-        return dbl;
-    case 0x1A:
-        units = QString::fromUtf8("\u00B0 C");
-        dbl = b-a;
-        return dbl;
-    case 0x21:
-        units = "%";
-        if (a == 0)
-            dbl = 100.0*b;
-        else
-            dbl = 100.0*b/a;
-        return dbl;
-    case 0x22:
-        units = "kW";
-        dbl = (b-128)*0.01*a;
-        return dbl;
-    case 0x23:
-        units = "l/h";
-        dbl = a*b/100.0;
-        return dbl;
-    case 0x25:
-        units = "Binary";
-        uint = (a << 8 | b);
-        return uint;
-    case 0x27:
-        // fuel
-        units = "mg/stk";
-        dbl = a*b/256.0;
-        return dbl;
-    case 0x31:
-        // air
-        units = "mg/stk";
-        dbl = a*b/40.0;
-        return dbl;
-    case 0x33:
-        units = QString::fromUtf8("mg/stk \u0394");
-        dbl = ((b-128)/255.0)*a;
-        return dbl;
-    case 0x36:
-        units = "Count";
-        dbl = a*256+b;
-        return dbl;
-    case 0x37:
-        units = "s";
-        dbl = a*b/200.0;
-        return dbl;
-    case 0x51:
-        units = QString::fromUtf8("\u00B0 CF");
-        dbl = ((a*112000.0) + (b*436.0))/1000.0; // Torsion, check formula
-        return dbl;
-    case 0x5E:
-        units = "Nm";
-        dbl = a*(b/50.0-1); // Torque, check formula
-        return dbl;
-    default:
-        units = "Raw";
-        uint = (a << 8 | b);
-        return uint;
-    }
-}
-
-QVariant kwp2000::getBlockValue(int blockNum, int pos)
-{
-    if (currentBlocks.contains(blockNum)) {
-        return currentBlocks[blockNum][pos].val;
-    }
-    else return QVariant();
-}
-
-QString kwp2000::getBlockUnits(int blockNum, int pos)
-{
-    if (currentBlocks.contains(blockNum)) {
-        return currentBlocks[blockNum][pos].units;
-    }
-    else return QString();
-}
-
-QString kwp2000::getBlockDesc(int blockNum, int pos)
-{
-    if (currentBlocks.contains(blockNum)) {
-        return currentBlocks[blockNum][pos].desc;
-    }
-    else return QString();
-}
-
-blockLabels_t kwp2000::getBlockLabel(int blockNum)
-{
-    blockLabels_t empty;
-    return blockLabels.value(blockNum, empty);
-}
-
-QString kwp2000::getLabelFileName()
-{
-    return labelFileName;
-}
-
-void kwp2000::setLabelDir(QString dir)
-{
-    labelDir = dir;
-}
-
-QString kwp2000::getLabelDir()
-{
-    return labelDir;
-}
-
+/**
+ * @brief
+ *
+ * @return const QMap<int, moduleInfo_t>
+ */
 const QMap<int, moduleInfo_t> &kwp2000::getModuleList() const
 {
     return moduleList;
 }
 
-const QList<sampleValue> &kwp2000::getSample() const
+/**
+ * @brief
+ *
+ * @return int
+ */
+int kwp2000::getDiagSession() const
 {
-    return sample;
-
-    /*
-    static double x = 0;
-    x += 2.0*M_PI / 20.0;
-
-    static QList<sampleValue> tmp;
-
-    if (tmp.empty()) {
-        sampleValue tmpSample1;
-        for (int i = 0; i < 16; i++) {
-            tmp.append(tmpSample1);
-        }
-    }
-
-    for (int i = 0; i < 16; i++) {
-        tmp[i].val = qSin(x + (2.0*M_PI / 16.0)*i) * 10 * (i+1);
-    }
-
-    return tmp;
-    */
+    return diagSession;
 }
 
-QFileInfo kwp2000::getLogfileInfo()
+/**
+ * @brief
+ *
+ * @param slow
+ * @param norm
+ * @param fast
+ */
+void kwp2000::setTimeouts(int norm)
 {
-    if (!logFile) {
-        return QFileInfo();
-    }
-    return QFileInfo(*logFile);
-}
-
-void kwp2000::setTimeouts(int slow, int norm, int fast)
-{
-    slowRecvTimeout = slow;
     normRecvTimeout = norm;
-    fastRecvTimeout = fast;
-    tp->setSlowRecvTimeout(slow);
 }
 
+/**
+ * @brief
+ *
+ * @param time
+ */
 void kwp2000::setKeepAliveInterval(int time)
 {
     tp->setKeepAliveInterval(time);
