@@ -665,7 +665,7 @@ void kwp2000::longIdHandler(QByteArray *data)
     for (int i = 12; i < 16; i++) {
         if (12 == i)
         {
-            ecuInfo.swVers += QChar(data->at(i) & 0b01111111); // first bit has to be 0
+            ecuInfo.swVers += QChar(data->at(i) & 0x7F); // 0b01111111 // first bit has to be 0
         }
         else {
             ecuInfo.swVers += QChar(data->at(i));  //Software version

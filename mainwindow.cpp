@@ -355,8 +355,8 @@ void MainWindow::moduleInfoReceived(ecuLongId ecuInfo, QStringList hwNum , QStri
 
 void MainWindow::aboutdlg()
 {
-    QMessageBox::about(this, tr("About SpeckMobil"),
-                       tr("<b>SpeckMobil - Speckmarschall Diagnosis Software for VW cars</b> is more than a glass of beer."));
+    QString abouttext = QString("<b>SpeckMobil %1 - Speckmarschall Diagnosis Software for VW cars</b> is more than a glass of beer.").arg(VER);
+    QMessageBox::about(this, tr("About SpeckMobil"), abouttext);
 }
 
 void MainWindow::DTCReceived(DTC DTCs)

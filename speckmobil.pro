@@ -26,7 +26,9 @@ QT      += core gui \
 TARGET  = SpeckMobil
 TEMPLATE = app
 
-VERSION = 0.1
+VERSION = 0.4-a
+VERSTR = '\\"$${VERSION}\\"'
+DEFINES += VER=\"$${VERSTR}\"
 
 SOURCES += main.cpp \
         mainwindow.cpp \

@@ -650,8 +650,8 @@ void tp20::openChannel(int dest, int timeout)
     t1 = param.T1;
     t3 = param.T3;
 
-    quint8 timepot = (t3 & 0b11000000) >> 6; // 00 0.1ms, 01 1ms, 10 10ms, 11 100ms
-    quint8 timefactor = t3 & 0b00111111;
+    quint8 timepot = (t3 & 0xC0) >> 6;  //0b11000000) >> 6; // 00 0.1ms, 01 1ms, 10 10ms, 11 100ms
+    quint8 timefactor = t3 & 0x3F; //0b00111111;
     quint8 timebase = 1;
 
     for (int i = 1; i <= timepot; i++)
