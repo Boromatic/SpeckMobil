@@ -26,7 +26,7 @@ QT      += core gui \
 TARGET  = SpeckMobil
 TEMPLATE = app
 CONFIG += static
-TRANSLATIONS += mobil_en.ts
+TRANSLATIONS += SpeckMobil_de.ts
 
 VERSION = 0.4-a
 VERSTR = '\\"$${VERSION}\\"'
@@ -56,7 +56,8 @@ FORMS   += mainwindow.ui \
         settings.ui
 
 RESOURCES += \
-        icons.qrc
+        icons.qrc \
+    languages.qrc
 
 RC_FILE += resources/icon.rc
 

@@ -75,6 +75,7 @@ private slots:
     void moduleInfoReceived(ecuLongId ecuInfo, QStringList hwNum , QString vin, QString serNum);
     void DTCReceived(DTC DTCs);
     void clearUI();
+    void clearLog();
     void refreshModules(bool quickInit = false);
     void updateSettings();
     void aboutdlg();

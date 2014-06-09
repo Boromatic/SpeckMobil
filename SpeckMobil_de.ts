@@ -1,191 +1,191 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="en_US">
+<TS version="2.1" language="de_DE" sourcelanguage="en_US">
 <context>
     <name>MainWindow</name>
     <message>
         <location filename="mainwindow.ui" line="6"/>
         <source>SpeckMobil</source>
-        <translation type="unfinished"></translation>
+        <translation>SpeckMobil</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="17"/>
         <source>Connect to ELM</source>
-        <translation type="unfinished"></translation>
+        <translation>Mit ELM verbinden</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="27"/>
         <source>Find Modules</source>
-        <translation type="unfinished"></translation>
+        <translation>Suche Steuergeräte</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="34"/>
         <source>DTC Handling</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehlerspeicher</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="56"/>
         <source>Number of Errors:</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehleranzahl:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="78"/>
         <location filename="mainwindow.ui" line="234"/>
         <location filename="mainwindow.ui" line="276"/>
         <source>hH</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="96"/>
         <source>Read Errors in Module</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehlerspeicher lesen</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="106"/>
         <source>Clear Errors in Module</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehlerspeicher löschen</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="116"/>
         <source>Clear Errors in all Modules</source>
-        <translation type="unfinished"></translation>
+        <translation>Alle Fehlerspeicher löschen</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="123"/>
         <source>Error Codes:</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehlercode:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="147"/>
         <source>Opens a connection to the specfied module</source>
-        <translation type="unfinished"></translation>
+        <translation>stellt eine Verbindung zum ausgewählten Steuergerät her</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="150"/>
         <location filename="mainwindow.cpp" line="317"/>
         <source>Open Module</source>
-        <translation type="unfinished"></translation>
+        <translation>Steuergerät verbinden</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="170"/>
         <source>Read Info</source>
-        <translation type="unfinished"></translation>
+        <translation>Info lesen</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="177"/>
         <source>Choose Module</source>
-        <translation type="unfinished"></translation>
+        <translation>Steuergerät auswählen</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="203"/>
         <source>Select a module to connect to</source>
-        <translation type="unfinished"></translation>
+        <translation>Steuergerät zum Verbinden auswählen</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="212"/>
         <source>Module address:</source>
-        <translation type="unfinished"></translation>
+        <translation>Steuergeräteadresse:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="237"/>
         <location filename="mainwindow.ui" line="279"/>
         <source>01</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="254"/>
         <source>Module number:</source>
-        <translation type="unfinished"></translation>
+        <translation>Steuergerätenummer:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="304"/>
         <source>Shop Number:</source>
-        <translation type="unfinished"></translation>
+        <translation>Händlernummer:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="314"/>
         <source>Coding:</source>
-        <translation type="unfinished"></translation>
+        <translation>Codierung:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="328"/>
         <source>Module identification:</source>
-        <translation type="unfinished"></translation>
+        <translation>Steuergerätename:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="335"/>
         <source>Displays information about the current module</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="345"/>
         <source>Hardware part number:</source>
-        <translation type="unfinished"></translation>
+        <translation>Teilenummer:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="352"/>
         <source>Displays information about the current Electronic Control Module</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="362"/>
         <source>Software part number:</source>
-        <translation type="unfinished"></translation>
+        <translation>Softwareteilenummer:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="372"/>
         <source>Software Version:</source>
-        <translation type="unfinished"></translation>
+        <translation>Softwareversion:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="382"/>
         <source>Serial number:</source>
-        <translation type="unfinished"></translation>
+        <translation>Seriennummer:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="392"/>
         <source>VIN:</source>
-        <translation type="unfinished"></translation>
+        <translation>Fahrzeug-Identifizierungsnummer:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="445"/>
         <source>&amp;File</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Datei</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="451"/>
         <source>&amp;Options</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Einstellungen</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="460"/>
         <source>&amp;Help</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Hilfe</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="471"/>
         <source>E&amp;xit</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Beenden</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="476"/>
         <source>&amp;Serial port settings</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;serieller Anschluss</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="481"/>
         <source>&amp;About</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Informationen</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="486"/>
         <source>&amp;Clear log</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Logfenster leeren</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="491"/>
         <source>&amp;Application settings</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Verbindungsparameter</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="169"/>
@@ -194,94 +194,94 @@
         <location filename="mainwindow.cpp" line="399"/>
         <location filename="mainwindow.cpp" line="430"/>
         <source>Other</source>
-        <translation type="unfinished"></translation>
+        <translation>Sonstige</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="207"/>
         <source>ELM327 initialisation complete.</source>
-        <translation type="unfinished"></translation>
+        <translation>ELM327 vollständig initialisiert.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="212"/>
         <source>ELM327 initialisation failed.</source>
-        <translation type="unfinished"></translation>
+        <translation>ELM327 konnte nicht initialisiert werden.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="224"/>
         <source>DiagSession = </source>
-        <translation type="unfinished"></translation>
+        <translation>Diagnosemodus = </translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="253"/>
         <source>Delete Errors</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehlerspeicher löschen</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="268"/>
         <source>startDiag clicked</source>
-        <translation type="unfinished"></translation>
+        <translation>startDiag angeklickt</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="307"/>
         <source>Close Module</source>
-        <translation type="unfinished"></translation>
+        <translation>Verbindung beenden</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="330"/>
         <source>Stop Diag</source>
-        <translation type="unfinished"></translation>
+        <translation>Diagnosesitzung beenden</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="333"/>
         <source>Start Diag</source>
-        <translation type="unfinished"></translation>
+        <translation>Diagnosesitzung beginnen</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="358"/>
         <source>&lt;b&gt;SpeckMobil %1 - Speckmarschall Diagnosis Software for VW cars&lt;/b&gt; is more than a glass of beer.</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;b&gt;SpeckMobil %1 - Speckmarschall VW-Diagnoseprogramm&lt;/b&gt; ist mehr als ein Glas Bier.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="359"/>
         <source>About SpeckMobil</source>
-        <translation type="unfinished"></translation>
+        <translation>Über SpeckMobil</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="385"/>
         <location filename="mainwindow.cpp" line="397"/>
         <source>Engine</source>
-        <translation type="unfinished"></translation>
+        <translation>Motor</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="386"/>
         <location filename="mainwindow.cpp" line="398"/>
         <source>Transmission</source>
-        <translation type="unfinished"></translation>
+        <translation>Getriebe</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="410"/>
         <source>Module OK</source>
-        <translation type="unfinished"></translation>
+        <translation>kein Fehler</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="414"/>
         <source>Malfunction</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler gefunden</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="418"/>
         <source>Not registered</source>
-        <translation type="unfinished"></translation>
+        <translation>nicht im Gateway eingetragen</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="422"/>
         <source>Can&apos;t be reached</source>
-        <translation type="unfinished"></translation>
+        <translation>nicht erreichbar</translation>
     </message>
     <message>
-        <location filename="main.cpp" line="31"/>
+        <location filename="main.cpp" line="43"/>
         <source>&lt;b&gt;SpeckMobil - Speckmarschall Diagnosis Software for VW cars&lt;/b&gt;&lt;br&gt;&lt;br&gt;This is experimental software! It is tested only on a VW Golf Goal MK V. Use it with caution and respect your country&apos;s law, especially when working with airbags, brakes, etc.&lt;br&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;b&gt;SpeckMobil - Speckmarschall VW-Diagnoseprogramm&lt;/b&gt;&lt;br&gt;&lt;br&gt;Dieses Programm dient zu Versuchszwecken und ist in Entwicklung! Es wurde an einem VW Golf Goal V getestet. Verwenden Sie es mit Vorsicht und unter Berücksichtigung der lokalen Gesetze, insbesondere bei Arbeiten mit Airbags, Bremsen und ähnlichem.&lt;br&gt;Dieses Programm wurde in der Absicht bereit gestellt, nützlich zu sein, allerdings wird jegliche Gewährleistung ausgeschlossen.</translation>
     </message>
 </context>
 <context>
@@ -289,42 +289,42 @@
     <message>
         <location filename="elm327.cpp" line="69"/>
         <source>Serial port rate could not be set.</source>
-        <translation type="unfinished"></translation>
+        <translation>Baudrate konnte nicht eingestellt werden.</translation>
     </message>
     <message>
         <location filename="elm327.cpp" line="73"/>
         <source>Serial port data bits could not be set.</source>
-        <translation type="unfinished"></translation>
+        <translation>Anzahl der Datenbits konnte nicht eingestellt werden.</translation>
     </message>
     <message>
         <location filename="elm327.cpp" line="77"/>
         <source>Serial port parity could not be set.</source>
-        <translation type="unfinished"></translation>
+        <translation>Parität konnte nicht eingestellt werden.</translation>
     </message>
     <message>
         <location filename="elm327.cpp" line="81"/>
         <source>Serial port stop bits could not be set.</source>
-        <translation type="unfinished"></translation>
+        <translation>Anzahl der Stopbits konnte nicht eingestellt werden.</translation>
     </message>
     <message>
         <location filename="elm327.cpp" line="85"/>
         <source>Serial port flow control could not be set.</source>
-        <translation type="unfinished"></translation>
+        <translation>Flusskontrolle konnte nicht eingestellt werden.</translation>
     </message>
     <message>
         <location filename="elm327.cpp" line="88"/>
         <source>Port configured.</source>
-        <translation type="unfinished"></translation>
+        <translation>Serielle Schnittstelle konfiguriert.</translation>
     </message>
     <message>
         <location filename="elm327.cpp" line="96"/>
         <source>Port could not be opened.</source>
-        <translation type="unfinished"></translation>
+        <translation>Serielle Schnittstelle konnte nicht geöffnet werden.</translation>
     </message>
     <message>
         <location filename="elm327.cpp" line="105"/>
         <source>Port closed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Serielle Schnittstelle wurde geschlossen.</translation>
     </message>
 </context>
 <context>
@@ -332,132 +332,132 @@
     <message>
         <location filename="kwp2000.cpp" line="134"/>
         <source>Opening channel to module 0x</source>
-        <translation type="unfinished"></translation>
+        <translation>Kanal wird aufgebaut zu Steuergerät 0x</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="145"/>
         <source>Closing channel to module 0x</source>
-        <translation type="unfinished"></translation>
+        <translation>Kanal wird geschlosssen zu Steuergerät 0x</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="273"/>
         <source>Channel closed to module 0x</source>
-        <translation type="unfinished"></translation>
+        <translation>Kanal ist aufgebaut zu Steuergerät 0x</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="290"/>
         <source>Channel opened to module 0x</source>
-        <translation type="unfinished"></translation>
+        <translation>Kanal wurde erfolgreich aufgebaut zu Steuergerät 0x</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="361"/>
         <source>Send: </source>
-        <translation type="unfinished"></translation>
+        <translation>Sende: </translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="394"/>
         <source>Error: Received empty KWP data</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Leere KWP-Daten erhalten</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="400"/>
         <source>Error: Received malformed KWP data</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Falsch formatierte KWP-Daten erhalten</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="412"/>
         <source>Warning: Received negative KWP response to </source>
-        <translation type="unfinished"></translation>
+        <translation>Warnung: Negative KWP-Antwort auf den Befehl </translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="412"/>
         <source> command</source>
-        <translation type="unfinished"></translation>
+        <translation> erhalten</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="418"/>
         <source>Waiting for Data...</source>
-        <translation type="unfinished"></translation>
+        <translation>Auf Daten warten...</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="426"/>
         <source>Unknown reason</source>
-        <translation type="unfinished"></translation>
+        <translation>Grund unbekannt</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="427"/>
         <source>Reason code </source>
-        <translation type="unfinished"></translation>
+        <translation>Fehlercode </translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="506"/>
         <source>Error: Unknown ID Parameter</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Unbekannter ID-Parameter</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="528"/>
         <source>DTC-data too short</source>
-        <translation type="unfinished"></translation>
+        <translation>DTC-Daten zu kurz</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="564"/>
         <source>Misc command: Response code</source>
-        <translation type="unfinished"></translation>
+        <translation>Sonstiger Befehl: Antwortcode </translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="564"/>
         <source>, parameter </source>
-        <translation type="unfinished"></translation>
+        <translation>, Parameter </translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="599"/>
         <source>LongCoding Error</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Lesen von langer Codierung</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="603"/>
         <source>Long Coding</source>
-        <translation type="unfinished"></translation>
+        <translation>lange Codierung</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="608"/>
         <source>LongCoding Date too short</source>
-        <translation type="unfinished"></translation>
+        <translation>Daten für lange Codierung zu kurz</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="677"/>
         <source>Short coding</source>
-        <translation type="unfinished"></translation>
+        <translation>kurze Codierung</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="688"/>
         <source>Start reading long coding</source>
-        <translation type="unfinished"></translation>
+        <translation>lange Codierung wird gelesen</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="744"/>
         <source>List modules: Didn&apos;t get list of 2 byte arrays</source>
-        <translation type="unfinished"></translation>
+        <translation>Anzeige der Steuergeräte: Keine Liste von 2-Byte-Feldern erhalten</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="754"/>
         <source>Error! List modules: Not complete.</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Anzeige der Steuergeräte nicht vollständig.</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="764"/>
         <source>Unknown Module</source>
-        <translation type="unfinished"></translation>
+        <translation>Unbekanntes Steuergerät</translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="771"/>
         <source>Skipping module </source>
-        <translation type="unfinished"></translation>
+        <translation>Steuergerät wird nicht berücksichtigt </translation>
     </message>
     <message>
         <location filename="kwp2000.cpp" line="771"/>
         <source> (addr is 0x13)</source>
-        <translation type="unfinished"></translation>
+        <translation>Adresse ist 0x13</translation>
     </message>
 </context>
 <context>
@@ -465,108 +465,108 @@
     <message>
         <location filename="serialsettings.ui" line="14"/>
         <source>Serial Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Einstellungen serieller Anschluss</translation>
     </message>
     <message>
         <location filename="serialsettings.ui" line="20"/>
         <source>Select Serial Port</source>
-        <translation type="unfinished"></translation>
+        <translation>Anschluss auswählern</translation>
     </message>
     <message>
         <location filename="serialsettings.ui" line="38"/>
         <source>Location:</source>
-        <translation type="unfinished"></translation>
+        <translation>Ort:</translation>
     </message>
     <message>
         <location filename="serialsettings.ui" line="73"/>
         <source>Description:</source>
-        <translation type="unfinished"></translation>
+        <translation>Beschreibung:</translation>
     </message>
     <message>
         <location filename="serialsettings.ui" line="92"/>
         <source>Manufacturer:</source>
-        <translation type="unfinished"></translation>
+        <translation>Hersteller:</translation>
     </message>
     <message>
         <location filename="serialsettings.ui" line="109"/>
         <source>Select Parameters</source>
-        <translation type="unfinished"></translation>
+        <translation>Anschlussparameter</translation>
     </message>
     <message>
         <location filename="serialsettings.ui" line="121"/>
         <source>Rate:</source>
-        <translation type="unfinished"></translation>
+        <translation>Baudrate:</translation>
     </message>
     <message>
         <location filename="serialsettings.ui" line="144"/>
         <source>Data bits:</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="serialsettings.ui" line="167"/>
         <source>Parity:</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="serialsettings.ui" line="190"/>
         <source>Stop bits:</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="serialsettings.ui" line="213"/>
         <source>Flow control:</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="serialsettings.ui" line="238"/>
         <source>Refresh ports</source>
-        <translation type="unfinished"></translation>
+        <translation>Neu einlesen</translation>
     </message>
     <message>
         <location filename="serialsettings.cpp" line="71"/>
         <source>Description: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Beschreibung: %1</translation>
     </message>
     <message>
         <location filename="serialsettings.cpp" line="72"/>
         <source>Manufacturer: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Hersteller: %1</translation>
     </message>
     <message>
         <location filename="serialsettings.cpp" line="73"/>
         <source>Location: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ort: %1</translation>
     </message>
     <message>
         <location filename="serialsettings.cpp" line="107"/>
         <source>Custom</source>
-        <translation type="unfinished"></translation>
+        <translation>Eigene</translation>
     </message>
     <message>
         <location filename="serialsettings.cpp" line="117"/>
         <location filename="serialsettings.cpp" line="131"/>
         <source>None</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="serialsettings.cpp" line="118"/>
         <source>Even</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="serialsettings.cpp" line="119"/>
         <source>Odd</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="serialsettings.cpp" line="120"/>
         <source>Mark</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="serialsettings.cpp" line="121"/>
         <source>Space</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -574,27 +574,27 @@
     <message>
         <location filename="settings.ui" line="14"/>
         <source>Timing Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Verbindungsparameter</translation>
     </message>
     <message>
         <location filename="settings.ui" line="23"/>
         <source>Receive timeout settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Empfangsparameter</translation>
     </message>
     <message>
         <location filename="settings.ui" line="29"/>
         <source>timeout / ms</source>
-        <translation type="unfinished"></translation>
+        <translation>Zeitbeschränkung / ms</translation>
     </message>
     <message>
         <location filename="settings.ui" line="42"/>
         <source>Keep Alive Interval</source>
-        <translation type="unfinished"></translation>
+        <translation>Keepaliveintervall</translation>
     </message>
     <message>
         <location filename="settings.ui" line="48"/>
         <source>interval / ms</source>
-        <translation type="unfinished"></translation>
+        <translation>Intervall / ms</translation>
     </message>
 </context>
 <context>
@@ -603,244 +603,244 @@
         <location filename="tp20.cpp" line="76"/>
         <location filename="tp20.cpp" line="589"/>
         <source>Info: Setting new timeout</source>
-        <translation type="unfinished"></translation>
+        <translation>Info: neue Zeitbeschränkung einstellen</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="78"/>
         <location filename="tp20.cpp" line="591"/>
         <source>Error: Couldn&apos;t set timeout</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Zeitbeschränkung konnte nicht eingestellt werden</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="104"/>
         <location filename="tp20.cpp" line="120"/>
         <source>Error: Did not get ACK from TP2.0 device</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Kein ACK vom TP2.0-Gerät empfangen</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="108"/>
         <source>Error: Invalid ACK or no data from TP2.0 device</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Ungültiges ACK oder keine Daten vom TP2.0-Gerät empfangen</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="124"/>
         <source>Error: Invalid ACK from TP2.0 device</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Ungültiges ACK vom TP2.0-Gerät empfangen</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="134"/>
         <source>Error: Got premature response from TP2.0 device</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Antwort von TP2.0-Gerät zu früh erhalten</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="161"/>
         <source>Error: Incorrectly trying to interpret packet as first packet</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Paket wird fälschlicherweise als erstes Paket interpretiert</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="173"/>
         <source>Error: TP2.0 return byte array does not exist</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: TP2.0 rückgabefeld nicht vorhanden</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="178"/>
         <source>Warning: Bytes received = packet length, should have returned already</source>
-        <translation type="unfinished"></translation>
+        <translation>Warnung: bytesReceived == length</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="182"/>
         <source>Error: Received more bytes than the message length</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Mehr Bytes empfangen, als in Nachricht angegeben wurde</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="188"/>
         <source>Error: Sequence error</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Sequenzfehler</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="197"/>
         <source>Error: Invalid TP2.0 op-code</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Ungültiger TP2.0 op-code</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="203"/>
         <source>Error: This is the last TP2.0 packet but there is data following</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Dies ist das letzte TP2.0-Paket aber es kommen noch Daten</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="216"/>
         <source>Warning: Received less bytes than the TP2.0 message length</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Weniger Bytes empfangen, als in Nachricht angegeben wurde</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="224"/>
         <source>send ACK</source>
-        <translation type="unfinished"></translation>
+        <translation>ACK senden</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="226"/>
         <source>!sendACK=0</source>
-        <translation type="unfinished"></translation>
+        <translation>!sendACK=0</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="232"/>
         <source>Warning: Got a more than one message</source>
-        <translation type="unfinished"></translation>
+        <translation>Warnung: Mehr als eine Nachticht erhalten</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="235"/>
         <source>Error: Error sending ACK</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Fehler beim ACK senden</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="240"/>
         <source>sended ACK</source>
-        <translation type="unfinished"></translation>
+        <translation>ACK gesendet</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="308"/>
         <source>Data found</source>
-        <translation type="unfinished"></translation>
+        <translation>Daten gefunden</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="329"/>
         <source>ELM init failed.</source>
-        <translation type="unfinished"></translation>
+        <translation>ELM327 konnte nicht initialisiert werden.</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="354"/>
         <source>Warning: Could not set receive timeout</source>
-        <translation type="unfinished"></translation>
+        <translation>Warnung: Zeitbeschränkung für den Empfang konnte nicht eingestellt werden</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="389"/>
         <source>Receiver not ready TPDU = 9x</source>
-        <translation type="unfinished"></translation>
+        <translation>Empfänger nicht bereit TBDU = 9x</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="421"/>
         <source>ID: </source>
-        <translation type="unfinished"></translation>
+        <translation>Bezeichnung: </translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="422"/>
         <source>Protocol: </source>
-        <translation type="unfinished"></translation>
+        <translation>Protokoll: </translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="434"/>
         <source>Manufacturer: </source>
-        <translation type="unfinished"></translation>
+        <translation>Hersteller: </translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="435"/>
         <source>Device: </source>
-        <translation type="unfinished"></translation>
+        <translation>Gerät: </translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="436"/>
         <source>Firmware: </source>
-        <translation type="unfinished"></translation>
+        <translation>Firmware: </translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="437"/>
         <source>Serial: </source>
-        <translation type="unfinished"></translation>
+        <translation>Seriennummer: </translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="680"/>
         <source>Sending keep alive command</source>
-        <translation type="unfinished"></translation>
+        <translation>Keepalive wird gesendet</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="688"/>
         <source>Warning: No Response to keep alive</source>
-        <translation type="unfinished"></translation>
+        <translation>Warnung: keine Antwort auf Keepalive</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="693"/>
         <source>Error: Too many keepAliveErrors</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Zu viele Keepalivefehler</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="704"/>
         <source>Error: Wrong Response to KeepAlive</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Falsche Antwort auf Keepalive</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="731"/>
         <source>Wrong Status: </source>
-        <translation type="unfinished"></translation>
+        <translation>Falscher Staus: </translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="732"/>
         <source>Error: Wrong response while getting status</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Falsche Antwort auf Statusanfrage</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="742"/>
         <source>Received channel test command, sending response</source>
-        <translation type="unfinished"></translation>
+        <translation>Befehl zum Kanaltest erhalten, Antwort senden</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="789"/>
         <source>Error: Wrong response while getting CAN frame</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Falsche Antwort beim Erhalten des CAN-Frame</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="806"/>
         <source>Error: Wrong response while getting string</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Falsche Antwort beim Erhalten einer Zeichenkette</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="815"/>
         <source>Info: No status bits set</source>
-        <translation type="unfinished"></translation>
+        <translation>Info: Keine Stautsbits gesetzt</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="819"/>
         <source>Info: Timeout receiving data from ELM327</source>
-        <translation type="unfinished"></translation>
+        <translation>Info: Zeitbeschränkung überschritten, beim Empfang vom ELM327</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="823"/>
         <source>Info: No prompt from ELM327</source>
-        <translation type="unfinished"></translation>
+        <translation>Info: Keine Eingabeaufforderung vom ELM327</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="827"/>
         <source>Info: OK response from ELM327</source>
-        <translation type="unfinished"></translation>
+        <translation>Info: &quot;OK&quot; von ELM327</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="831"/>
         <source>Info: STOPPED response from ELM327</source>
-        <translation type="unfinished"></translation>
+        <translation>Info: &quot;STOPPED&quot; von ELM327</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="835"/>
         <source>Info: UNKNOWN response from ELM327</source>
-        <translation type="unfinished"></translation>
+        <translation>Info: &quot;UNKNOWN&quot; von ELM327</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="839"/>
         <source>Info: AT command in response from ELM327</source>
-        <translation type="unfinished"></translation>
+        <translation>Info: AT-Befehl in Antwort von ELM327</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="843"/>
         <source>Info: NO DATA response from ELM327</source>
-        <translation type="unfinished"></translation>
+        <translation>Info: &quot;NO DATA&quot; von ELM327</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="847"/>
         <source>Info: Error parsing received data</source>
-        <translation type="unfinished"></translation>
+        <translation>Info: empfangene Daten konnten nicht korrekt eingelesen werden</translation>
     </message>
     <message>
         <location filename="tp20.cpp" line="851"/>
         <source>Info: CAN ERROR response from ELM327</source>
-        <translation type="unfinished"></translation>
+        <translation>Info: &quot;CAN ERROR&quot; von ELM327</translation>
     </message>
 </context>
 </TS>

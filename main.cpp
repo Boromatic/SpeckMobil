@@ -22,11 +22,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtWidgets/QApplication>
 #include <QMessageBox>
 #include "mainwindow.h"
+#include <qtranslator.h>
+#include <qlibraryinfo.h>
 
 int main(int argc, char *argv[])
 {
 
     QApplication application(argc, argv);
+
+    QTranslator qtTranslator;
+    qtTranslator.load("qt_" + QLocale::system().name(),
+                     QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+    application.installTranslator(&qtTranslator);
+
+    QTranslator speckMobilTanslator;
+    speckMobilTanslator.load(":/SpeckMobil_de");
+    application.installTranslator(&speckMobilTanslator);
+
     QMessageBox msgBox;
     msgBox.setText(MainWindow::tr("<b>SpeckMobil - Speckmarschall Diagnosis Software for VW cars</b><br><br>This is experimental software! "
                    "It is tested only on a VW Golf Goal MK V. Use it with caution and respect your country's law,"

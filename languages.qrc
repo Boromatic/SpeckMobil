@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>SpeckMobil_de.qm</file>
+    </qresource>
+</RCC>

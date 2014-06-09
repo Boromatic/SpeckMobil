@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settingsDialog = new settings(appSettings, this);
     connect(ui->action_About, SIGNAL(triggered()), this, SLOT(aboutdlg()));
     connect(ui->actionApplication_settings, SIGNAL(triggered()), settingsDialog, SLOT(show()));
+    connect(ui->actionClear_log, SIGNAL(triggered()), this, SLOT(clearLog()));
 
     connect(&kwp, SIGNAL(log(QString, int)), this, SLOT(log(QString, int)));
     connect(&kwp, SIGNAL(channelOpened(bool)), this, SLOT(channelOpen(bool)));
@@ -377,6 +378,11 @@ void MainWindow::clearUI()
     ui->lineEdit_swNum->clear();
     ui->lineEdit_vin->clear();
     ui->lineEdit_serNum->clear();
+}
+
+void MainWindow::clearLog()
+{
+    ui->plainTextEdit_log->clear();
 }
 
 void MainWindow::refreshModules(bool quickInit)
