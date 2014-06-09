@@ -25,6 +25,7 @@ QT      += core gui \
 
 TARGET  = SpeckMobil
 TEMPLATE = app
+CONFIG += static
 
 VERSION = 0.4-a
 VERSTR = '\\"$${VERSION}\\"'
