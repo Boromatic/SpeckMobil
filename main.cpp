@@ -28,10 +28,10 @@ int main(int argc, char *argv[])
 
     QApplication application(argc, argv);
     QMessageBox msgBox;
-    msgBox.setText("<b>SpeckMobil - Speckmarschall Diagnosis Software for VW cars</b><br><br>This is experimental software! "
+    msgBox.setText(MainWindow::tr("<b>SpeckMobil - Speckmarschall Diagnosis Software for VW cars</b><br><br>This is experimental software! "
                    "It is tested only on a VW Golf Goal MK V. Use it with caution and respect your country's law,"
                    " especially when working with airbags, brakes, etc.<br>"
-                   "This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.");
+                   "This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY."));
     msgBox.setIcon(QMessageBox::Information);
     msgBox.addButton("OK", QMessageBox::YesRole);
     msgBox.exec();

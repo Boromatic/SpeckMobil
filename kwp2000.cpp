@@ -131,7 +131,7 @@ void kwp2000::openChannel(int i) {
 
     destModule = i;
 
-    emit log("Opening channel to module 0x" + toHex(destModule));
+    emit log(tr("Opening channel to module 0x") + toHex(destModule));
     QMetaObject::invokeMethod(tp, "openChannel", Qt::BlockingQueuedConnection,
                               Q_ARG(int, addr),
                               Q_ARG(int, normRecvTimeout));
@@ -142,7 +142,7 @@ void kwp2000::openChannel(int i) {
  *
  */
 void kwp2000::closeChannel() {
-    emit log("Closing channel to module 0x" + toHex(destModule));
+    emit log(tr("Closing channel to module 0x") + toHex(destModule));
     QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
 }
 
@@ -270,7 +270,7 @@ void kwp2000::channelOpenedClosed(bool status)
 {
     if (status == false) {
         if (destModule >= 0) {
-            emit log("Channel closed to module 0x" + toHex(destModule));
+            emit log(tr("Channel closed to module 0x") + toHex(destModule));
         }
         diagSession = 0;
         destModule = -1;
@@ -287,7 +287,7 @@ void kwp2000::channelOpenedClosed(bool status)
         ecuInfo.swNum = "";
         ecuInfo.swVers = "";
         ecuInfo.systemId = "";
-        emit log("Channel opened to module 0x" + toHex(destModule));
+        emit log(tr("Channel opened to module 0x") + toHex(destModule));
     }
 }
 
@@ -358,7 +358,7 @@ void kwp2000::sendOwn(int parm1, int parm2)
         pause();
         packet.append(parm1);
         packet.append(parm2);
-        emit log("Send: " + toHex(parm1) + toHex(parm2));
+        emit log(tr("Send: ") + toHex(parm1) + toHex(parm2));
         QMetaObject::invokeMethod(tp, "sendData", Qt::BlockingQueuedConnection,
                                   Q_ARG(QByteArray, packet),
                                   Q_ARG(int, normRecvTimeout));
@@ -391,13 +391,13 @@ void kwp2000::deleteErrors()
 void kwp2000::recvKWP(QByteArray *data)
 {
     if (!data) {
-        emit log("Error: Received empty KWP data");
+        emit log(tr("Error: Received empty KWP data"));
         QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
         return;
     }
 
     if (data->length() < 2) {
-        emit log("Error: Received malformed KWP data");
+        emit log(tr("Error: Received malformed KWP data"));
         QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
         delete data;
         return;
@@ -409,13 +409,13 @@ void kwp2000::recvKWP(QByteArray *data)
 
     if (respCode == 0x7F) {
         //negative response
-        emit log("Warning: Received negative KWP response to " + toHex(param) + " command");
+        emit log(tr("Warning: Received negative KWP response to ") + toHex(param) + tr(" command"));
         if (data->length() > 0) {
             quint8 reasonCode = static_cast<quint8>(data->at(0));
             if (reasonCode == 0x78)
             {
                 QMetaObject::invokeMethod(tp, "stopKeepAliveTimer", Qt::QueuedConnection);
-                emit log("Waiting for Data...");
+                emit log(tr("Waiting for Data..."));
                 delete data;
                 //QTimer::singleShot(10000, &longloop, SLOT(quit()));
                 //longloop.exec();
@@ -423,8 +423,8 @@ void kwp2000::recvKWP(QByteArray *data)
                 //todo reaction to 0x78
                 return;
             }
-            QString reasonName = responseCode.value(reasonCode, "Unknown reason");
-            emit log("Reason code " + toHex(reasonCode));
+            QString reasonName = responseCode.value(reasonCode, tr("Unknown reason"));
+            emit log(tr("Reason code ") + toHex(reasonCode));
             emit log(reasonName);
                 }
         delete data;
@@ -503,7 +503,7 @@ void kwp2000::startIdHandler(QByteArray *data, quint8 param)
         longIdHandler(data);
     }
     else {
-        emit log("Error: Unknown ID Parameter");
+        emit log(tr("Error: Unknown ID Parameter"));
         miscHandler(data, 0x50, param);
     }
     emit newModuleInfo(ecuInfo, hwNum , vin, serNum);
@@ -525,7 +525,7 @@ void kwp2000::DTCHandler(QByteArray *data, quint8 NumDTCs)
     nDTCs.part = "";
     if (data->length() < (NumDTCs * 3))
     {
-        emit log("DTC-data too short");
+        emit log(tr("DTC-data too short"));
         delete data;
         return;
     }
@@ -561,7 +561,7 @@ void kwp2000::DTCHandler(QByteArray *data, quint8 NumDTCs)
  */
 void kwp2000::miscHandler(QByteArray *data, quint8 respCode, quint8 param)
 {
-    emit log("Misc command: Response code" + toHex(respCode) + ", parameter " + toHex(param));
+    emit log(tr("Misc command: Response code") + toHex(respCode) + tr(", parameter ") + toHex(param));
     delete data;
 }
 
@@ -596,16 +596,16 @@ void kwp2000::longCodingHandler(QByteArray *data)
 {
     if (data->at(10) != 0x10)
     {
-        emit log("LongCoding Error");
+        emit log(tr("LongCoding Error"));
     }
     else
     {
-        emit log("Long Coding", debugMsgLog);
+        emit log(tr("Long Coding"), debugMsgLog);
 
         quint8 len = static_cast<quint8>(data->at(11));
         if (data->length() < (len + 12))
         {
-            emit log("LongCoding Date too short");
+            emit log(tr("LongCoding Date too short"));
             delete data;
             return;
         }
@@ -674,7 +674,7 @@ void kwp2000::longIdHandler(QByteArray *data)
 
     if (data->at(16) == 0x03)
     {
-        emit log("Short coding", debugMsgLog);
+        emit log(tr("Short coding"), debugMsgLog);
         quint64 codenumber = 0;
 
     for (int i = 17; i < 20; i++) {
@@ -685,7 +685,7 @@ void kwp2000::longIdHandler(QByteArray *data)
     }
     else if (data->at(16) == 0x10)
     {
-        emit log("Start reading long coding", debugMsgLog);
+        emit log(tr("Start reading long coding"), debugMsgLog);
 
         QByteArray packet;
         pause();
@@ -741,7 +741,7 @@ void kwp2000::queryModulesHandler(QByteArray *data)
    // delete data;
 
     if (dataList.length() != 2) {
-        emit log("List modules: Didn't get list of 2 byte arrays");
+        emit log(tr("List modules: Didn't get list of 2 byte arrays"));
         QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
         return;
     }
@@ -751,7 +751,7 @@ void kwp2000::queryModulesHandler(QByteArray *data)
     //todo: no loop
     for (int i = 0; i < dataList.at(0).length(); i+=4) {
         if (i+4 > dataList.at(0).length()) {
-            emit log("Error! List modules: Not complete.");
+            emit log(tr("Error! List modules: Not complete."));
             QMetaObject::invokeMethod(tp, "closeChannel", Qt::BlockingQueuedConnection);
             return;
         }
@@ -761,14 +761,14 @@ void kwp2000::queryModulesHandler(QByteArray *data)
             moduleInfo_t tmp;
             tmp.number = static_cast<quint8>(dataList.at(0).at(i));
             tmp.addr = static_cast<quint8>(dataList.at(0).at(i+1));
-            tmp.name = moduleNames.value(tmp.number, "Unknown Module");
+            tmp.name = moduleNames.value(tmp.number, tr("Unknown Module"));
             tmp.isPresent = ((lsb & 0x01) == 1);
             tmp.status = (lsb & 0x1E) >> 1;
 
             // skip modules with address of 0x13, module numbers 0x0 and 0x4 seem to report this addr
             // but these modules dont exist
             if (tmp.addr == 0x13) {
-                emit log("Skipping module " + toHex(tmp.number) + " (addr is 0x13)", debugMsgLog);
+                emit log(tr("Skipping module ") + toHex(tmp.number) + tr(" (addr is 0x13)"), debugMsgLog);
                 continue;
             }
 

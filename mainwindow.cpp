@@ -166,7 +166,7 @@ void MainWindow::connectToSerial()
 
 void MainWindow::selectNewModule(int pos)
 {
-    if (pos == ui->comboBox_modules->findText("Other")) {
+    if (pos == ui->comboBox_modules->findText(tr("Other"))) {
         ui->lineEdit_moduleAddress->setText("");
         ui->lineEdit_moduleAddress->setCursorPosition(0);
         ui->lineEdit_moduleAddress->setFocus();
@@ -196,7 +196,7 @@ void MainWindow::on_lineEdit_moduleAddress_textChanged(const QString &arg1)
 
     int index = ui->comboBox_modules->findData(moduleNum);
     if (index < 0) {
-        index = ui->comboBox_modules->findText("Other");
+        index = ui->comboBox_modules->findText(tr("Other"));
     }
     ui->comboBox_modules->setCurrentIndex(index);
 }
@@ -204,12 +204,12 @@ void MainWindow::on_lineEdit_moduleAddress_textChanged(const QString &arg1)
 void MainWindow::elmInitialised(bool ok)
 {
     if (ok) {
-        ui->statusBar->showMessage("ELM327 initialisation complete.");
+        ui->statusBar->showMessage(tr("ELM327 initialisation complete."));
         ui->pushButton_findModules->setEnabled(true);
         ui->pushButton_openModule->setEnabled(true);
     }
     else {
-        ui->statusBar->showMessage("ELM327 initialisation failed.");
+        ui->statusBar->showMessage(tr("ELM327 initialisation failed."));
     }
 }
 
@@ -221,7 +221,7 @@ void MainWindow::on_pushButton_findModules_clicked()
 
 void MainWindow::on_pushButton_readErrors_clicked()
 {
-    emit log("DiagSession = " + kwp.getDiagSession(), debugMsgLog);
+    emit log(tr("DiagSession = ") + kwp.getDiagSession(), debugMsgLog);
     kwp.readErrors();
 }
 
@@ -234,14 +234,14 @@ void MainWindow::on_pushButton_readErrors_clicked()
 //    parm1 = ui->lineEdit_dataByte1->text().toInt(&ok, 16);
 //    if (!ok)
 //    {
-//        emit log("Error in SendOwn");
+//        emit log(tr("Error in SendOwn"));
 //        return;
 //    }
 
 //    parm2 = ui->lineEdit_dataByte2->text().toInt(&ok, 16);
 //    if (!ok)
 //    {
-//        emit log("Error in SendOwn");
+//        emit log(tr("Error in SendOwn"));
 //        return;
 //    }
 
@@ -250,7 +250,7 @@ void MainWindow::on_pushButton_readErrors_clicked()
 
 void MainWindow::on_pushButton_resetErrors_clicked()
 {
-    emit log("Delete Errors", debugMsgLog);
+    emit log(tr("Delete Errors"), debugMsgLog);
     kwp.deleteErrors();
 }
 
@@ -265,7 +265,7 @@ void MainWindow::on_pushButton_startDiag_clicked()
 {
     QMetaObject::invokeMethod(&kwp, "startDiag", Qt::QueuedConnection,
                               Q_ARG(int, 0x89));
-    emit log("startDiag clicked", debugMsgLog);
+    emit log(tr("startDiag clicked"), debugMsgLog);
 
 }
 
@@ -304,7 +304,7 @@ void MainWindow::channelOpen(bool status)
 {
     if (status) {
         ui->pushButton_openModule->setIcon(QIcon(":/resources/green.png"));
-        ui->pushButton_openModule->setText("Close Module");
+        ui->pushButton_openModule->setText(tr("Close Module"));
         ui->lineEdit_moduleAddress->setEnabled(false);
         ui->comboBox_modules->setEnabled(false);
         ui->pushButton_readErrors->setEnabled(true);
@@ -314,7 +314,7 @@ void MainWindow::channelOpen(bool status)
     }
     else {
         ui->pushButton_openModule->setIcon(QIcon(":/resources/red.png"));
-        ui->pushButton_openModule->setText("Open Module");
+        ui->pushButton_openModule->setText(tr("Open Module"));
         ui->lineEdit_moduleAddress->setEnabled(true);
         ui->comboBox_modules->setEnabled(true);
         ui->pushButton_readErrors->setEnabled(false);
@@ -327,10 +327,10 @@ void MainWindow::channelOpen(bool status)
 void MainWindow::diagActive(bool status)
 {
     if (status) {
-        ui->pushButton_startDiag->setText("Stop Diag");
+        ui->pushButton_startDiag->setText(tr("Stop Diag"));
     }
     else {
-        ui->pushButton_startDiag->setText(("Start Duag"));
+        ui->pushButton_startDiag->setText(tr("Start Diag"));
     }
 }
 
@@ -355,7 +355,7 @@ void MainWindow::moduleInfoReceived(ecuLongId ecuInfo, QStringList hwNum , QStri
 
 void MainWindow::aboutdlg()
 {
-    QString abouttext = QString("<b>SpeckMobil %1 - Speckmarschall Diagnosis Software for VW cars</b> is more than a glass of beer.").arg(VER);
+    QString abouttext = QString(tr("<b>SpeckMobil %1 - Speckmarschall Diagnosis Software for VW cars</b> is more than a glass of beer.")).arg(VER);
     QMessageBox::about(this, tr("About SpeckMobil"), abouttext);
 }
 
@@ -382,9 +382,9 @@ void MainWindow::clearUI()
 void MainWindow::refreshModules(bool quickInit)
 {
     if (quickInit) {
-        ui->comboBox_modules->addItem("Engine", 1);
-        ui->comboBox_modules->addItem("Transmission", 2);
-        ui->comboBox_modules->addItem("Other");
+        ui->comboBox_modules->addItem(tr("Engine"), 1);
+        ui->comboBox_modules->addItem(tr("Transmission"), 2);
+        ui->comboBox_modules->addItem(tr("Other"));
         return;
     }
 
@@ -394,9 +394,9 @@ void MainWindow::refreshModules(bool quickInit)
     ui->comboBox_modules->clear();
 
     if (modules.empty()) {
-        ui->comboBox_modules->addItem("Engine", 1);
-        ui->comboBox_modules->addItem("Transmission", 2);
-        ui->comboBox_modules->addItem("Other");
+        ui->comboBox_modules->addItem(tr("Engine"), 1);
+        ui->comboBox_modules->addItem(tr("Transmission"), 2);
+        ui->comboBox_modules->addItem(tr("Other"));
         return;
     }
 
@@ -407,19 +407,19 @@ void MainWindow::refreshModules(bool quickInit)
 
         switch (modules[num].status) {
         case 0x0: //0000 ->x000
-            ui->comboBox_modules->setItemData(i, "Module OK", Qt::ToolTipRole);
+            ui->comboBox_modules->setItemData(i, tr("Module OK"), Qt::ToolTipRole);
             ui->comboBox_modules->setItemData(i, QBrush(Qt::darkGreen), Qt::ForegroundRole);
             break;
         case 0x2: //0010 ->x010
-            ui->comboBox_modules->setItemData(i, "Malfunction", Qt::ToolTipRole);
+            ui->comboBox_modules->setItemData(i, tr("Malfunction"), Qt::ToolTipRole);
             ui->comboBox_modules->setItemData(i, QBrush(Qt::darkRed), Qt::ForegroundRole);
             break;
         case 0x3: //0011
-            ui->comboBox_modules->setItemData(i, "Not registered", Qt::ToolTipRole);
+            ui->comboBox_modules->setItemData(i, tr("Not registered"), Qt::ToolTipRole);
             ui->comboBox_modules->setItemData(i, QBrush(Qt::red), Qt::ForegroundRole);
             break;
         case 0xC: //1100 ->11xx
-            ui->comboBox_modules->setItemData(i, "Can't be reached", Qt::ToolTipRole);
+            ui->comboBox_modules->setItemData(i, tr("Can't be reached"), Qt::ToolTipRole);
             ui->comboBox_modules->setItemData(i, QBrush(Qt::red), Qt::ForegroundRole);
             break;
         default:
@@ -427,5 +427,5 @@ void MainWindow::refreshModules(bool quickInit)
         }
     }
 
-    ui->comboBox_modules->addItem("Other");
+    ui->comboBox_modules->addItem(tr("Other"));
 }

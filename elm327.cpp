@@ -66,26 +66,26 @@ void elm327::openPort()
         bool ok;
         ok = port->setBaudRate(settings.rate);
         if (!ok) {
-            emit log("Serial port rate could not be set.", serialConfigLog);
+            emit log(tr("Serial port rate could not be set."), serialConfigLog);
         }
         ok = port->setDataBits(settings.dataBits);
         if (!ok) {
-            emit log("Serial port data bits could not be set.", serialConfigLog);
+            emit log(tr("Serial port data bits could not be set."), serialConfigLog);
         }
         ok = port->setParity(settings.parity);
         if (!ok) {
-            emit log("Serial port parity could not be set.", serialConfigLog);
+            emit log(tr("Serial port parity could not be set."), serialConfigLog);
         }
         ok = port->setStopBits(settings.stopBits);
         if (!ok) {
-            emit log("Serial port stop bits could not be set.", serialConfigLog);
+            emit log(tr("Serial port stop bits could not be set."), serialConfigLog);
         }
         ok = port->setFlowControl(settings.flowControl);
         if (!ok) {
-            emit log("Serial port flow control could not be set.", serialConfigLog);
+            emit log(tr("Serial port flow control could not be set."), serialConfigLog);
         }
 
-        emit log("Port configured.");
+        emit log(tr("Port configured."));
         portOpen = true;
         emit portOpened(true);
         return;
@@ -93,7 +93,7 @@ void elm327::openPort()
     portOpen = false;
     emit portOpened(false);
     emit portClosed();
-    emit log("Port could not be opened.");
+    emit log(tr("Port could not be opened."));
     return;
 }
 
@@ -102,7 +102,7 @@ void elm327::closePort()
     if (port) {
         port->close();
         emit portClosed();
-        emit log("Port closed.");
+        emit log(tr("Port closed."));
     }
     portOpen = false;
 }

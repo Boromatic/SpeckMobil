@@ -73,9 +73,9 @@ void tp20::sendData(const QByteArray &data, int requestedTimeout)
     }
 
     if (recvTimeout != requestedTimeout) {
-        emit log("Info: Setting new timeout", debugMsgLog);
+        emit log(tr("Info: Setting new timeout"), debugMsgLog);
         if (!applyRecvTimeout(requestedTimeout)) {
-            emit log("Error: Couldn't set timeout", debugMsgLog);
+            emit log(tr("Error: Couldn't set timeout"), debugMsgLog);
             setChannelClosed();
             return;
         }
@@ -101,11 +101,11 @@ void tp20::sendData(const QByteArray &data, int requestedTimeout)
             packet.append(sendData.mid(i*7, bytesLeft));
             writeToElmBA(packet);
             if (!getResponseCAN()) {
-                emit log("Error: Did not get ACK from TP2.0 device", responseErrorLog);
+                emit log(tr("Error: Did not get ACK from TP2.0 device"), responseErrorLog);
                 return;
             }
             if (!checkACK() || lastResponse->length() < 2) {
-                emit log("Error: Invalid ACK or no data from TP2.0 device", responseErrorLog);
+                emit log(tr("Error: Invalid ACK or no data from TP2.0 device"), responseErrorLog);
                 return;
             }
             lastResponse->removeFirst(); // after ACK check, remove ACK
@@ -117,11 +117,11 @@ void tp20::sendData(const QByteArray &data, int requestedTimeout)
             writeToElmBA(packet);
             //Read ACK
             if (!getResponseCAN()) {
-                emit log("Error: Did not get ACK from TP2.0 device", responseErrorLog);
+                emit log(tr("Error: Did not get ACK from TP2.0 device"), responseErrorLog);
                 return;
             }
             if (lastResponse->length() > 1 || !checkACK()) {
-                emit log("Error: Invalid ACK from TP2.0 device", responseErrorLog);
+                emit log(tr("Error: Invalid ACK from TP2.0 device"), responseErrorLog);
                 return;
             }
         }
@@ -131,7 +131,7 @@ void tp20::sendData(const QByteArray &data, int requestedTimeout)
             writeToElmBA(packet);
             // Read in NO DATA
             if (!getResponseStatus(NO_DATA_RESPONSE)) {
-                emit log("Error: Got premature response from TP2.0 device", responseErrorLog);
+                emit log(tr("Error: Got premature response from TP2.0 device"), responseErrorLog);
                 return;
             }
         }
@@ -158,7 +158,7 @@ void tp20::recvData()
                 dtF = getAsDTFirst(0);
             }
             else {
-                emit log("Error: Incorrectly trying to interpret packet as first packet", responseErrorLog);
+                emit log(tr("Error: Incorrectly trying to interpret packet as first packet"), responseErrorLog);
                 return;
             }
             length = dtF.len;
@@ -170,22 +170,22 @@ void tp20::recvData()
         }
 
         if (!ret) {
-            emit log("Error: TP2.0 return byte array does not exist", responseErrorLog);
+            emit log(tr("Error: TP2.0 return byte array does not exist"), responseErrorLog);
             return;
         }
 
         if (bytesReceived == length) {
-            emit log("Warning: Bytes received = packet length, should have returned already", responseErrorLog);
+            emit log(tr("Warning: Bytes received = packet length, should have returned already"), responseErrorLog);
         }
 
         if (bytesReceived > length) {
-            emit log("Error: Received more bytes than the message length", responseErrorLog);
+            emit log(tr("Error: Received more bytes than the message length"), responseErrorLog);
             delete ret;
             return;
         }
 
         if (!checkSeq()) {
-            emit log("Error: Sequence error", responseErrorLog);
+            emit log(tr("Error: Sequence error"), responseErrorLog);
             delete ret;
             return;
         }
@@ -194,13 +194,13 @@ void tp20::recvData()
         for (int i = 0; i < lenTmp; i++) {
             dataTrans dt = getAsDT(i);
             if (dt.opcode > 0x3) {
-                emit log("Error: Invalid TP2.0 op-code", responseErrorLog);
+                emit log(tr("Error: Invalid TP2.0 op-code"), responseErrorLog);
                 delete ret;
                 return;
             }
             if (dt.opcode & 0x01) { // last packet
                 if (lastResponse->length()-1 > i) {
-                    emit log("Error: This is the last TP2.0 packet but there is data following", responseErrorLog);
+                    emit log(tr("Error: This is the last TP2.0 packet but there is data following"), responseErrorLog);
                     delete ret;
                     return;
                 }
@@ -213,7 +213,7 @@ void tp20::recvData()
 
             if (!keepGoing) {
                 if (bytesReceived < length) {
-                    emit log("Warning: Received less bytes than the TP2.0 message length", responseErrorLog);
+                    emit log(tr("Warning: Received less bytes than the TP2.0 message length"), responseErrorLog);
                     delete ret;
                     return;
                 }
@@ -221,23 +221,23 @@ void tp20::recvData()
             }
 
             if (!(dt.opcode & 0x02)) { // send ACK
-                emit log("send ACK", debugMsgLog);
+                emit log(tr("send ACK"), debugMsgLog);
                 if(!sendACK(keepGoing)) {
-                    emit log("!sendACK=0", debugMsgLog);
+                    emit log(tr("!sendACK=0"), debugMsgLog);
                     if (lastResponse->length() > 0) {
                         // Didn't expect to get more data because we already received the last packet
                         // There is an additional KWP message following
                         keepGoing = true;
                         firstPacket = true;
-                        emit log("Warning: Got a more than one message", debugMsgLog);
+                        emit log(tr("Warning: Got a more than one message"), debugMsgLog);
                     }
                     else {
-                        emit log("Error: Error sending ACK", debugMsgLog);
+                        emit log(tr("Error: Error sending ACK"), debugMsgLog);
                         delete ret;
                         return;
                     }
                 }
-                emit log("sended ACK", debugMsgLog);
+                emit log(tr("sended ACK"), debugMsgLog);
             }
         }
     }
@@ -305,7 +305,7 @@ void tp20::waitForData()
     bool receivedData = getResponseCAN();
     if (receivedData)
     {
-        emit log("Data found", debugMsgLog);
+        emit log(tr("Data found"), debugMsgLog);
         break;
     }
     QEventLoop loop;
@@ -326,7 +326,7 @@ void tp20::elmInitialisationFailed()
 {
     elmInitilised = false;
     emit elmInitDone(false);
-    emit log("ELM init failed.");
+    emit log(tr("ELM init failed."));
     if (elm->getPortOpen())
         QMetaObject::invokeMethod(elm, "closePort", Qt::BlockingQueuedConnection);
         return;
@@ -351,7 +351,7 @@ bool tp20::applyRecvTimeout(int msecs)
 
     writeToElmStr("AT ST " + toHex(val));
     if (!getResponseStatus(OK_RESPONSE)) {
-        emit log("Warning: Could not set receive timeout");
+        emit log(tr("Warning: Could not set receive timeout"));
         recvTimeout = -1; // forces it to try again next time
         return false;
     }
@@ -380,13 +380,13 @@ bool tp20::checkACK() {
         //            if (notReadyCounter >= MNTB)
         //            {
         //                notReadyCounter = 0;
-        //                emit log("Error: Receiver not ready error.");
+        //                emit log(tr("Error: Receiver not ready error."));
         //                setChannelClosed();
         //                return false;
         //            }
         if (dt.opcode == 0x9)
         {
-            emit log("Receiver not ready TPDU = 9x", debugMsgLog);  // insert delay T_wait
+            emit log(tr("Receiver not ready TPDU = 9x"), debugMsgLog);  // insert delay T_wait
             stopKeepAliveTimer();
             QEventLoop loop;
             QTimer::singleShot(T_wait, &loop, SLOT(quit()));
@@ -418,8 +418,8 @@ void tp20::initialiseElm(bool open)
         writeToElmStr("AT @1");
         QString devStr = getResponseStr();
 
-        emit log("ID: " + devStr);
-        emit log("Protocol: " + elmProtoVersion);
+        emit log(tr("ID: ") + devStr);
+        emit log(tr("Protocol: ") + elmProtoVersion);
 
         writeToElmStr("ST I");
         QString stFirmware = getResponseStr();
@@ -431,10 +431,10 @@ void tp20::initialiseElm(bool open)
             writeToElmStr("ST SN");
             QString stSN = getResponseStr();
 
-            emit log("Manufacturer: " + stMfr);
-            emit log("Device: " + stDevStr);
-            emit log("Firmware: " + stFirmware);
-            emit log("Serial: " + stSN);
+            emit log(tr("Manufacturer: ") + stMfr);
+            emit log(tr("Device: ") + stDevStr);
+            emit log(tr("Firmware: ") + stFirmware);
+            emit log(tr("Serial: ") + stSN);
 
             // set a pass all filter for ST devices
             writeToElmStr("ST FAP 000,000");
@@ -586,9 +586,9 @@ void tp20::openChannel(int dest, int timeout)
     }
 
     if (recvTimeout != timeout) {
-        emit log("Info: Setting new timeout", debugMsgLog);
+        emit log(tr("Info: Setting new timeout"), debugMsgLog);
         if (!applyRecvTimeout(timeout)) {
-            emit log("Error: Couldn't set timeout", debugMsgLog);
+            emit log(tr("Error: Couldn't set timeout"), debugMsgLog);
             setChannelClosed();
             return;
         }
@@ -677,7 +677,7 @@ void tp20::sendKeepAlive()
     if (channelDest < 0)
         return;
 
-    emit log("Sending keep alive command", keepAliveLog);
+    emit log(tr("Sending keep alive command"), keepAliveLog);
 
     //QMutexLocker locker(&sendLock);
 
@@ -685,12 +685,12 @@ void tp20::sendKeepAlive()
 
     if (!getResponseCAN() || lastResponse->at(0)->data.length() < 6)
     {
-        emit log("Warning: No Response to keep alive");
+        emit log(tr("Warning: No Response to keep alive"));
         keepAliveError += 1;
         if (keepAliveError > MNCT)
         {
             keepAliveError = 0;
-            emit log("Error: Too many keepAliveErrors");
+            emit log(tr("Error: Too many keepAliveErrors"));
             setChannelClosed();
             return;
         }
@@ -701,7 +701,7 @@ void tp20::sendKeepAlive()
         chanParam param = getAsCP(0);
         if (param.opcode != 0xA1 || param.bs > 0xF)
         {
-            emit log("Error: Wrong Response to KeepAlive");
+            emit log(tr("Error: Wrong Response to KeepAlive"));
             setChannelClosed();
             return;
         }
@@ -728,8 +728,8 @@ bool tp20::getResponseStatus(int expectedResult)
     if (status == expectedResult) {
         return tmp;
     }
-    emit log("Wrong Status: " + status);
-    emit log("Error: Wrong response while getting status", responseErrorLog);
+    emit log(tr("Wrong Status: ") + status);
+    emit log(tr("Error: Wrong response while getting status"), responseErrorLog);
     emit log(decodeError(status), responseErrorLog);
 
     return tmp;
@@ -739,7 +739,7 @@ bool tp20::checkForCommands() {
     for (int i = 0; i < lastResponse->length(); i++) {
         quint8 op = lastResponse->at(i)->data.at(0);
         if (op == 0xA3) { // channel test
-            emit log("Received channel test command, sending response", keepAliveLog);
+            emit log(tr("Received channel test command, sending response"), keepAliveLog);
             //lastResponse->removeAt(i--);
             //savedResponse = lastResponse;
             //sendKeepAlive();
@@ -786,7 +786,7 @@ bool tp20::getResponseCAN(bool replyExpected, bool closingChannel)
         //got data for ACK, probably should resend ACK
     }
 
-    emit log("Error: Wrong response while getting CAN frame", responseErrorLog);
+    emit log(tr("Error: Wrong response while getting CAN frame"), responseErrorLog);
     emit log(decodeError(status), responseErrorLog);
 
     //setChannelClosed();
@@ -803,7 +803,7 @@ QString tp20::getResponseStr()
         return tmp;
     }
 
-    emit log("Error: Wrong response while getting string", responseErrorLog);
+    emit log(tr("Error: Wrong response while getting string"), responseErrorLog);
     emit log(decodeError(status), responseErrorLog);
     return tmp;
 }
@@ -812,43 +812,43 @@ QString tp20::decodeError(int status) {
     QStringList ret;
 
     if (status == 0) {
-        ret << "Info: No status bits set";
+        ret << tr("Info: No status bits set");
     }
 
     if (status & TIMEOUT_ERROR) {
-        ret << "Info: Timeout receiving data from ELM327";
+        ret << tr("Info: Timeout receiving data from ELM327");
     }
 
     if (status & NO_PROMPT_ERROR) {
-        ret << "Info: No prompt from ELM327";
+        ret << tr("Info: No prompt from ELM327");
     }
 
     if (status & OK_RESPONSE) {
-        ret << "Info: OK response from ELM327";
+        ret << tr("Info: OK response from ELM327");
     }
 
     if (status & STOPPED_RESPONSE) {
-        ret << "Info: STOPPED response from ELM327";
+        ret << tr("Info: STOPPED response from ELM327");
     }
 
     if (status & UNKNOWN_RESPONSE) {
-        ret << "Info: UNKNOWN response from ELM327";
+        ret << tr("Info: UNKNOWN response from ELM327");
     }
 
     if (status & AT_RESPONSE) {
-        ret << "Info: AT command in response from ELM327";
+        ret << tr("Info: AT command in response from ELM327");
     }
 
     if (status & NO_DATA_RESPONSE) {
-        ret << "Info: NO DATA response from ELM327";
+        ret << tr("Info: NO DATA response from ELM327");
     }
 
     if (status & PROCESSING_ERROR) {
-        ret << "Info: Error parsing received data";
+        ret << tr("Info: Error parsing received data");
     }
 
     if (status & CAN_ERROR) {
-        ret << "Info: CAN ERROR response from ELM327";
+        ret << tr("Info: CAN ERROR response from ELM327");
     }
 
     return ret.join("\n");

@@ -104,7 +104,7 @@ void serialSettingsDialog::fillPortsParameters()
     ui->rateBox->addItem(QLatin1String("19200"), QSerialPort::Baud19200);
     ui->rateBox->addItem(QLatin1String("38400"), QSerialPort::Baud38400);
     ui->rateBox->addItem(QLatin1String("115200"), QSerialPort::Baud115200);
-    ui->rateBox->addItem(QLatin1String("Custom"));
+    ui->rateBox->addItem(tr("Custom"));
 
     // fill data bits
     ui->dataBitsBox->addItem(QLatin1String("5"), QSerialPort::Data5);
@@ -114,11 +114,11 @@ void serialSettingsDialog::fillPortsParameters()
     ui->dataBitsBox->setCurrentIndex(3);
 
     // fill parity
-    ui->parityBox->addItem(QLatin1String("None"), QSerialPort::NoParity);
-    ui->parityBox->addItem(QLatin1String("Even"), QSerialPort::EvenParity);
-    ui->parityBox->addItem(QLatin1String("Odd"), QSerialPort::OddParity);
-    ui->parityBox->addItem(QLatin1String("Mark"), QSerialPort::MarkParity);
-    ui->parityBox->addItem(QLatin1String("Space"), QSerialPort::SpaceParity);
+    ui->parityBox->addItem(tr("None"), QSerialPort::NoParity);
+    ui->parityBox->addItem(tr("Even"), QSerialPort::EvenParity);
+    ui->parityBox->addItem(tr("Odd"), QSerialPort::OddParity);
+    ui->parityBox->addItem(tr("Mark"), QSerialPort::MarkParity);
+    ui->parityBox->addItem(tr("Space"), QSerialPort::SpaceParity);
 
     // fill stop bits
     ui->stopBitsBox->addItem(QLatin1String("1"), QSerialPort::OneStop);
@@ -128,7 +128,7 @@ void serialSettingsDialog::fillPortsParameters()
     ui->stopBitsBox->addItem(QLatin1String("2"), QSerialPort::TwoStop);
 
     // fill flow control
-    ui->flowControlBox->addItem(QLatin1String("None"), QSerialPort::NoFlowControl);
+    ui->flowControlBox->addItem(tr("None"), QSerialPort::NoFlowControl);
     ui->flowControlBox->addItem(QLatin1String("RTS/CTS"), QSerialPort::HardwareControl);
     ui->flowControlBox->addItem(QLatin1String("XON/XOFF"), QSerialPort::SoftwareControl);
 }
