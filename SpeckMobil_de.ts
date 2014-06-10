@@ -62,7 +62,7 @@
     </message>
     <message>
         <location filename="mainwindow.ui" line="150"/>
-        <location filename="mainwindow.cpp" line="317"/>
+        <location filename="mainwindow.cpp" line="318"/>
         <source>Open Module</source>
         <translation>Steuergerät verbinden</translation>
     </message>
@@ -188,93 +188,93 @@
         <translation>&amp;Verbindungsparameter</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="169"/>
-        <location filename="mainwindow.cpp" line="199"/>
-        <location filename="mainwindow.cpp" line="387"/>
-        <location filename="mainwindow.cpp" line="399"/>
-        <location filename="mainwindow.cpp" line="430"/>
+        <location filename="mainwindow.cpp" line="170"/>
+        <location filename="mainwindow.cpp" line="200"/>
+        <location filename="mainwindow.cpp" line="393"/>
+        <location filename="mainwindow.cpp" line="405"/>
+        <location filename="mainwindow.cpp" line="436"/>
         <source>Other</source>
         <translation>Sonstige</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="207"/>
+        <location filename="mainwindow.cpp" line="208"/>
         <source>ELM327 initialisation complete.</source>
         <translation>ELM327 vollständig initialisiert.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="212"/>
+        <location filename="mainwindow.cpp" line="213"/>
         <source>ELM327 initialisation failed.</source>
         <translation>ELM327 konnte nicht initialisiert werden.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="224"/>
+        <location filename="mainwindow.cpp" line="225"/>
         <source>DiagSession = </source>
         <translation>Diagnosemodus = </translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="253"/>
+        <location filename="mainwindow.cpp" line="254"/>
         <source>Delete Errors</source>
         <translation>Fehlerspeicher löschen</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="268"/>
+        <location filename="mainwindow.cpp" line="269"/>
         <source>startDiag clicked</source>
         <translation>startDiag angeklickt</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="307"/>
+        <location filename="mainwindow.cpp" line="308"/>
         <source>Close Module</source>
         <translation>Verbindung beenden</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="330"/>
+        <location filename="mainwindow.cpp" line="331"/>
         <source>Stop Diag</source>
         <translation>Diagnosesitzung beenden</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="333"/>
+        <location filename="mainwindow.cpp" line="334"/>
         <source>Start Diag</source>
         <translation>Diagnosesitzung beginnen</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="358"/>
+        <location filename="mainwindow.cpp" line="359"/>
         <source>&lt;b&gt;SpeckMobil %1 - Speckmarschall Diagnosis Software for VW cars&lt;/b&gt; is more than a glass of beer.</source>
         <translation>&lt;b&gt;SpeckMobil %1 - Speckmarschall VW-Diagnoseprogramm&lt;/b&gt; ist mehr als ein Glas Bier.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="359"/>
+        <location filename="mainwindow.cpp" line="360"/>
         <source>About SpeckMobil</source>
         <translation>Über SpeckMobil</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="385"/>
-        <location filename="mainwindow.cpp" line="397"/>
+        <location filename="mainwindow.cpp" line="391"/>
+        <location filename="mainwindow.cpp" line="403"/>
         <source>Engine</source>
         <translation>Motor</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="386"/>
-        <location filename="mainwindow.cpp" line="398"/>
+        <location filename="mainwindow.cpp" line="392"/>
+        <location filename="mainwindow.cpp" line="404"/>
         <source>Transmission</source>
         <translation>Getriebe</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="410"/>
+        <location filename="mainwindow.cpp" line="416"/>
         <source>Module OK</source>
         <translation>kein Fehler</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="414"/>
+        <location filename="mainwindow.cpp" line="420"/>
         <source>Malfunction</source>
         <translation>Fehler gefunden</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="418"/>
+        <location filename="mainwindow.cpp" line="424"/>
         <source>Not registered</source>
         <translation>nicht im Gateway eingetragen</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="422"/>
+        <location filename="mainwindow.cpp" line="428"/>
         <source>Can&apos;t be reached</source>
         <translation>nicht erreichbar</translation>
     </message>
@@ -458,6 +458,246 @@
         <location filename="kwp2000.cpp" line="771"/>
         <source> (addr is 0x13)</source>
         <translation>Adresse ist 0x13</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="852"/>
+        <source>Engine #1</source>
+        <translation>Motor</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="853"/>
+        <source>Transmission</source>
+        <translation>Getriebe</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="854"/>
+        <source>ABS</source>
+        <translation>Bremsenelektronik</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="855"/>
+        <source>Security Access</source>
+        <translation>Zugangsberechtigung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="856"/>
+        <source>Passenger Seat</source>
+        <translation>Beifahrersitz</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="857"/>
+        <source>Front Info/Control</source>
+        <translation>Bordcomputer</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="858"/>
+        <source>AC &amp; Heating</source>
+        <translation>Klimaanlage und Heizung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="859"/>
+        <source>Central Electronics #1</source>
+        <translation>Zentralelektronik</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="860"/>
+        <source>Parking Aid #2</source>
+        <translation>Einparkhilfe</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="861"/>
+        <source>Engine #2</source>
+        <translation>Motor 2</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="862"/>
+        <source>Distance Regulation</source>
+        <translation>Distanzregulierung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="863"/>
+        <source>Suspension</source>
+        <translation>Aufhängung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="864"/>
+        <source>Airbags</source>
+        <translation>Airbag</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="865"/>
+        <source>Steering</source>
+        <translation>Lenkelektronik</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="866"/>
+        <source>Instrument Cluster</source>
+        <translation>Schalttafeleinsatz</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="867"/>
+        <source>Aux Heater</source>
+        <translation>Standheizung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="868"/>
+        <source>CAN Gateway</source>
+        <translation>CAN Gateway</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="869"/>
+        <source>High Beam Assist</source>
+        <translation>Fernlichtassistent</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="870"/>
+        <source>All Wheel Drive</source>
+        <translation>Allradantrieb</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="871"/>
+        <source>Immobiliser</source>
+        <translation>Wegfahrsperre</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="872"/>
+        <source>Convertible Top</source>
+        <translation>aufklappbares Verdeck</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="873"/>
+        <source>Left Headlight</source>
+        <translation>linkes Vorderlicht</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="874"/>
+        <source>Diagnostic Interface</source>
+        <translation>Diagnoseinterface</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="875"/>
+        <source>Level Control</source>
+        <translation>Niveauregulierung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="876"/>
+        <source>Central Locking</source>
+        <translation>Zetralverriegelung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="877"/>
+        <source>Driver Seat</source>
+        <translation>Fahrersitz</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="878"/>
+        <source>Radio/Sat Nav</source>
+        <translation>Navigation</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="879"/>
+        <source>Right Headlight</source>
+        <translation>rechtes Vorderlicht</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="880"/>
+        <source>Driver Door</source>
+        <translation>Fahrertür</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="881"/>
+        <source>Steering Assist</source>
+        <translation>Lenkassistent</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="882"/>
+        <source>Interior Monitoring</source>
+        <translation>Innenraumüberwachung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="883"/>
+        <source>Comfort System</source>
+        <translation>Comfortsystem</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="884"/>
+        <source>Sound System</source>
+        <translation>Soundsystem</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="885"/>
+        <source>Passenger Door</source>
+        <translation>Beifahrertür</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="886"/>
+        <source>Parking Brake</source>
+        <translation>Feststellbremse</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="887"/>
+        <source>Headlights</source>
+        <translation>Leuchtweitenregulierung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="888"/>
+        <source>Radio</source>
+        <translation>Radio</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="889"/>
+        <source>TV Tuner</source>
+        <translation>TV Tuner</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="890"/>
+        <source>Battery</source>
+        <translation>Batterie</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="891"/>
+        <source>Rear Left Door</source>
+        <translation>Tür hinten links</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="892"/>
+        <source>Tire Pressure</source>
+        <translation>Reifendrucküberwachung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="893"/>
+        <source>Voice Control</source>
+        <translation>Sprachsteuerung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="894"/>
+        <source>Wipers</source>
+        <translation>Scheibenwischer</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="895"/>
+        <source>Trailer Recognition</source>
+        <translation>Anhängererkennung</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="896"/>
+        <source>Rear Right Door</source>
+        <translation>Tür hinten rechts</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="897"/>
+        <source>Telematics</source>
+        <translation>Telematik</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="898"/>
+        <source>Parking Aid</source>
+        <translation>Einparkhilfe</translation>
+    </message>
+    <message>
+        <location filename="kwp2000.cpp" line="899"/>
+        <source>Telephone</source>
+        <translation>Telefon</translation>
     </message>
 </context>
 <context>

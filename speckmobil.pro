@@ -28,7 +28,7 @@ TEMPLATE = app
 CONFIG += static
 TRANSLATIONS += SpeckMobil_de.ts
 
-VERSION = 0.4-a
+VERSION = 0.4.1-a
 VERSTR = '\\"$${VERSION}\\"'
 DEFINES += VER=\"$${VERSTR}\"
 
